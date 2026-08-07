@@ -6,6 +6,7 @@ import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
 import type { ClubWithDistance } from '../types/club'
 import type { PlaceFocus } from '../lib/places'
+import { haversineKm } from '../lib/haversine'
 import {
   getTileConfig,
   SOUTH_ASIA_CENTER,
@@ -33,6 +34,15 @@ const SELECTED_ICON = L.divIcon({
   tooltipAnchor: [0, -34],
 })
 
+function meIcon(pulse: boolean): L.DivIcon {
+  return L.divIcon({
+    className: pulse ? 'me-marker me-marker--pulse' : 'me-marker',
+    html: '<span class="me-marker__ring" aria-hidden="true"></span><span class="me-marker__dot" aria-hidden="true"></span>',
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
+  })
+}
+
 L.Marker.prototype.options.icon = DEFAULT_ICON
 
 function tipForClub(club: ClubWithDistance): string {
@@ -47,12 +57,23 @@ export interface MapViewState {
   zoom: number
 }
 
+export interface MyLocation {
+  lat: number
+  lng: number
+}
+
 interface MapViewProps {
   clubs: ClubWithDistance[]
   selectedClubId: string | null
   onSelectClub: (clubId: string) => void
   focusPoint: PlaceFocus | null
   focusClub: ClubWithDistance | null
+  /** Standing GPS position (survives place-session clear). */
+  myLocation?: MyLocation | null
+  /** Bump to briefly emphasize the me marker (Near Me). */
+  mePulseKey?: number
+  /** Bump to pan/fly to myLocation without changing search/place session. */
+  recenterKey?: number
   radiusKm?: number | null
   /** Debounced map center/zoom for browse-nearby mode. */
   onViewChange?: (view: MapViewState) => void
@@ -72,6 +93,9 @@ function MapViewComponent({
   onSelectClub,
   focusPoint,
   focusClub,
+  myLocation = null,
+  mePulseKey = 0,
+  recenterKey = 0,
   radiusKm = null,
   onViewChange,
   trackView = false,
@@ -82,10 +106,14 @@ function MapViewComponent({
   const mapRef = useRef<L.Map | null>(null)
   const clusterRef = useRef<L.MarkerClusterGroup | null>(null)
   const focusLayerRef = useRef<L.LayerGroup | null>(null)
+  const meLayerRef = useRef<L.LayerGroup | null>(null)
+  const meMarkerRef = useRef<L.Marker | null>(null)
   const markersById = useRef(new Map<string, L.Marker>())
   const lastFocusKey = useRef<string>('')
   const lastMarkersKey = useRef<string>('')
   const lastClubFlyId = useRef<string>('')
+  const lastRecenterKey = useRef(0)
+  const lastPulseKey = useRef(0)
   const onSelectClubRef = useRef(onSelectClub)
   const onViewChangeRef = useRef(onViewChange)
   const flyingRef = useRef(false)
@@ -132,10 +160,12 @@ function MapViewComponent({
     map.addLayer(cluster)
 
     const focusLayer = L.layerGroup().addTo(map)
+    const meLayer = L.layerGroup().addTo(map)
 
     mapRef.current = map
     clusterRef.current = cluster
     focusLayerRef.current = focusLayer
+    meLayerRef.current = meLayer
 
     const observer = new ResizeObserver(() => {
       map.invalidateSize({ animate: false })
@@ -148,6 +178,8 @@ function MapViewComponent({
       mapRef.current = null
       clusterRef.current = null
       focusLayerRef.current = null
+      meLayerRef.current = null
+      meMarkerRef.current = null
     }
   }, [])
 
@@ -250,14 +282,72 @@ function MapViewComponent({
         direction: 'top',
         offset: selected ? [0, -34] : [0, -28],
         permanent: selected,
-        className: selected ? 'club-tooltip club-tooltip--selected' : 'club-tooltip',
+        className: selected
+          ? 'club-tooltip club-tooltip--selected'
+          : 'club-tooltip',
       })
       if (selected) marker.openTooltip()
       else marker.closeTooltip()
     }
   }, [selectedClubId, markersKey, displayClubs, focusClub])
 
-  // Focus pin + radius + single fly (never re-fly when club list updates)
+  // Standing "my location" marker (independent of placeFocus session)
+  useEffect(() => {
+    const meLayer = meLayerRef.current
+    if (!meLayer) return
+
+    if (!myLocation) {
+      meLayer.clearLayers()
+      meMarkerRef.current = null
+      return
+    }
+
+    const latlng: L.LatLngExpression = [myLocation.lat, myLocation.lng]
+    if (meMarkerRef.current) {
+      meMarkerRef.current.setLatLng(latlng)
+      return
+    }
+
+    const marker = L.marker(latlng, {
+      icon: meIcon(false),
+      interactive: false,
+      keyboard: false,
+      zIndexOffset: 800,
+    })
+    marker.bindTooltip('You are here', {
+      direction: 'top',
+      offset: [0, -10],
+      className: 'me-tooltip',
+    })
+    meMarkerRef.current = marker
+    meLayer.addLayer(marker)
+  }, [myLocation])
+
+  // Brief emphasize on Near Me
+  useEffect(() => {
+    if (!mePulseKey || mePulseKey === lastPulseKey.current) return
+    lastPulseKey.current = mePulseKey
+    const marker = meMarkerRef.current
+    if (!marker) return
+    marker.setIcon(meIcon(true))
+    const timer = window.setTimeout(() => {
+      if (meMarkerRef.current === marker) marker.setIcon(meIcon(false))
+    }, 1400)
+    return () => window.clearTimeout(timer)
+  }, [mePulseKey])
+
+  // Recenter camera on me only (no place session / list change)
+  useEffect(() => {
+    if (!recenterKey || recenterKey === lastRecenterKey.current) return
+    lastRecenterKey.current = recenterKey
+    const map = mapRef.current
+    if (!map || !myLocation) return
+    beginFlight(650)
+    const targetZoom = Math.min(16, Math.max(map.getZoom(), 13))
+    map.flyTo([myLocation.lat, myLocation.lng], targetZoom, { duration: 0.45 })
+  }, [recenterKey, myLocation])
+
+  // Place / locate session pin + radius + single fly
   useEffect(() => {
     const map = mapRef.current
     const focusLayer = focusLayerRef.current
@@ -274,18 +364,18 @@ function MapViewComponent({
 
     if (!focusPoint || focusPoint.source === 'map') return
 
-    const label =
-      focusPoint.source === 'user' ? 'You are here' : focusPoint.label
-
-    L.circleMarker([focusPoint.lat, focusPoint.lng], {
-      radius: focusPoint.source === 'user' ? 9 : 8,
-      color: '#9b1249',
-      weight: 2,
-      fillColor: focusPoint.source === 'user' ? '#f0b429' : '#d41b69',
-      fillOpacity: 0.95,
-    })
-      .bindTooltip(label, { direction: 'top', permanent: false })
-      .addTo(focusLayer)
+    // User locate: me marker lives on meLayer; only draw radius here.
+    if (focusPoint.source !== 'user') {
+      L.circleMarker([focusPoint.lat, focusPoint.lng], {
+        radius: 8,
+        color: '#9b1249',
+        weight: 2,
+        fillColor: '#d41b69',
+        fillOpacity: 0.95,
+      })
+        .bindTooltip(focusPoint.label, { direction: 'top', permanent: false })
+        .addTo(focusLayer)
+    }
 
     if (radiusKm != null && radiusKm > 0 && radiusKm <= 25) {
       L.circle([focusPoint.lat, focusPoint.lng], {
@@ -299,6 +389,15 @@ function MapViewComponent({
     }
 
     if (flyingRef.current) return
+
+    // Soft Near Me re-tap: already looking at me → no jarring re-fly
+    if (focusPoint.source === 'user') {
+      const c = map.getCenter()
+      const near =
+        haversineKm(c.lat, c.lng, focusPoint.lat, focusPoint.lng) < 1.6
+      if (near && map.getZoom() >= 11) return
+    }
+
     beginFlight(750)
     if (radiusKm != null && radiusKm > 0 && radiusKm <= 25) {
       const bounds = L.latLng(focusPoint.lat, focusPoint.lng).toBounds(
@@ -344,9 +443,11 @@ function MapViewComponent({
       })
       return
     }
-    map.flyTo([focusClub.latitude, focusClub.longitude], Math.max(map.getZoom(), 13), {
-      duration: 0.45,
-    })
+    map.flyTo(
+      [focusClub.latitude, focusClub.longitude],
+      Math.max(map.getZoom(), 13),
+      { duration: 0.45 },
+    )
   }, [focusClub])
 
   // Intentional club-name search only: never auto-fit during map browse
@@ -380,7 +481,9 @@ function MapViewComponent({
     map.flyToBounds(bounds.pad(0.25), { duration: 0.5, maxZoom: 13 })
   }, [autoFitResults, displayClubs, focusPoint, focusClub, markersKey])
 
-  return <div ref={containerRef} className="map-view" aria-label="Rotaract clubs map" />
+  return (
+    <div ref={containerRef} className="map-view" aria-label="Rotaract clubs map" />
+  )
 }
 
 export const MapView = memo(MapViewComponent)

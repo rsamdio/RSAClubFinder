@@ -989,6 +989,119 @@ a {
   color: var(--brand) !important;
 }
 
+/* Standing GPS “you are here” (distinct from cranberry place / club pins) */
+.me-marker {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+.me-marker__dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: #1a73e8;
+  border: 2.5px solid #fff;
+  box-shadow: 0 1px 6px rgba(26, 18, 32, 0.35);
+}
+
+.me-marker__ring {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: rgba(26, 115, 232, 0.28);
+  opacity: 0;
+  transform: scale(1);
+}
+
+.me-marker--pulse .me-marker__ring {
+  animation: me-pulse 1.25s ease-out 1;
+}
+
+.me-marker--pulse .me-marker__dot {
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  box-shadow:
+    0 0 0 3px rgba(240, 180, 41, 0.85),
+    0 2px 8px rgba(26, 18, 32, 0.35);
+}
+
+@keyframes me-pulse {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(3.2);
+  }
+}
+
+.me-tooltip {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* Maps-style recenter (visible map only; hidden when mobile sheet is full) */
+.map-recenter {
+  position: absolute;
+  z-index: 850;
+  right: 0.75rem;
+  bottom: calc(1.65rem + var(--safe-bottom));
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(80, 16, 48, 0.16);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+
+.map-recenter:disabled {
+  opacity: 0.55;
+  cursor: wait;
+}
+
+.map-recenter:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.map-recenter__icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  background: var(--brand);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-6a1 1 0 0 1 1 1v1.06A8.004 8.004 0 0 1 20.94 11H22a1 1 0 1 1 0 2h-1.06A8.004 8.004 0 0 1 13 20.94V22a1 1 0 1 1-2 0v-1.06A8.004 8.004 0 0 1 3.06 13H2a1 1 0 1 1 0-2h1.06A8.004 8.004 0 0 1 11 3.06V2a1 1 0 0 1 1-1zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0-6a1 1 0 0 1 1 1v1.06A8.004 8.004 0 0 1 20.94 11H22a1 1 0 1 1 0 2h-1.06A8.004 8.004 0 0 1 13 20.94V22a1 1 0 1 1-2 0v-1.06A8.004 8.004 0 0 1 3.06 13H2a1 1 0 1 1 0-2h1.06A8.004 8.004 0 0 1 11 3.06V2a1 1 0 0 1 1-1zm0 4a6 6 0 1 0 0 12 6 6 0 0 0 0-12z'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+.finder--mobile[data-sheet='peek'] .map-recenter {
+  bottom: calc(min(28vh, 210px) + 0.65rem);
+}
+
+.finder--mobile[data-sheet='half'] .map-recenter {
+  bottom: calc(min(52vh, 460px) + 0.65rem);
+}
+
+.finder--mobile[data-sheet='full'] .map-recenter {
+  display: none;
+}
+
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {

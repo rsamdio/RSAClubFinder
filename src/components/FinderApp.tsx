@@ -47,10 +47,13 @@ export function FinderApp() {
   const params = useParams()
   const clubId = params.clubId ?? null
   const [searchParams] = useSearchParams()
-  const { locating, error: nearMeError, requestLocation } = useNearMe()
+  const { location: myLocation, locating, error: nearMeError, requestLocation } =
+    useNearMe()
   const placeFocusRef = useRef<PlaceFocus | null>(null)
   const locateAnchorRef = useRef<{ lat: number; lng: number } | null>(null)
   const locateSettledRef = useRef(false)
+  const [mePulseKey, setMePulseKey] = useState(0)
+  const [recenterKey, setRecenterKey] = useState(0)
 
   const initialFilters = useMemo(
     () => filtersFromSearchParams(searchParams),
@@ -443,9 +446,10 @@ export function FinderApp() {
         maxKm: 80,
       })
 
-      // One-shot locate: fly + nearby list. Not a sticky mode.
+      // One-shot locate session for nearby list. Me pin is standing (myLocation).
       locateAnchorRef.current = { lat: pos.lat, lng: pos.lng }
       locateSettledRef.current = false
+      setMePulseKey((n) => n + 1)
       setPlaceFocus({
         lat: pos.lat,
         lng: pos.lng,
@@ -472,6 +476,11 @@ export function FinderApp() {
     } catch {
       // nearMeError surfaced near the Near me control
     }
+  }
+
+  function handleRecenter() {
+    if (!myLocation || locating) return
+    setRecenterKey((n) => n + 1)
   }
 
   async function shareClub() {
@@ -530,6 +539,10 @@ export function FinderApp() {
     if (results.some((c) => c.club_id === selectedInResults.club_id)) return results
     return [...results, selectedInResults]
   }, [results, selectedInResults])
+
+  const sheetForLayout = selectedInResults || clubId ? 'half' : sheetSnap
+  const showRecenter =
+    Boolean(myLocation) && (isDesktop || sheetForLayout !== 'full')
 
   const panelBody = selectedInResults ? (
     <ClubDetail
@@ -625,7 +638,10 @@ export function FinderApp() {
   )
 
   return (
-    <div className={`finder ${isDesktop ? 'finder--desktop' : 'finder--mobile'}`}>
+    <div
+      className={`finder ${isDesktop ? 'finder--desktop' : 'finder--mobile'}`}
+      data-sheet={isDesktop ? undefined : sheetForLayout}
+    >
       <header className="finder__brand">
         <a
           className="finder__brand-mark"
@@ -655,12 +671,27 @@ export function FinderApp() {
           onSelectClub={onSelectClub}
           focusPoint={placeFocus}
           focusClub={selectedInResults}
+          myLocation={myLocation}
+          mePulseKey={mePulseKey}
+          recenterKey={recenterKey}
           radiusKm={placeFocus && placeMode ? activeRadius : null}
           trackView={(!placeFocus || placeFocus.source === 'user') && !clubId}
           autoFitResults={autoFitResults}
           markerCap={mapMarkerCap}
           onViewChange={handleMapViewChange}
         />
+        {showRecenter ? (
+          <button
+            type="button"
+            className="map-recenter"
+            onClick={handleRecenter}
+            disabled={locating}
+            aria-label="Recenter map on my location"
+            title="Recenter on me"
+          >
+            <span className="map-recenter__icon" aria-hidden="true" />
+          </button>
+        ) : null}
       </div>
 
       {error ? (

@@ -51,7 +51,8 @@ Optional: `npx netlify dev` for production-like functions. Local Vite already pr
 Browser (FinderApp)
   ├─ Club / city search     ← Fuse + city index from clubs.json (no network)
   ├─ Area search (Enter / Search) ← GET /api/geocode → Mapbox → lat/lng pin
-  ├─ Near me (one-shot)     ← browser GPS → fly once → nearby list (not a sticky mode)
+  ├─ Near me (one-shot)     ← browser GPS → fly once → nearby list (not a sticky mode); standing me-dot stays after pan
+  ├─ Recenter (map control) ← pan to known me only; no search bubble / list change
   ├─ Map pan browse         ← nearest clubs to map center (zoom ≥ 10); list-only, never steals camera
   └─ Filters / share URLs   ← client-side; history.replaceState for query
 
@@ -76,7 +77,7 @@ Netlify
 10. User-facing copy: no Mapbox / token / stack jargon; speak only in visitor terms (search, map, near you).
 11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).
-13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan.
+13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan. After a successful locate, keep a quiet standing **me** marker for the tab session (survives pan/zoom/place search). **Recenter** (bottom-right map control) only pans to that me point; it must not create a Near Me search session or change the club list.
 
 ### Club types (RI)
 
