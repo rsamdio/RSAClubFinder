@@ -1,0 +1,38 @@
+{
+  "name": "rsaclubfinder",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --port 5173 --strictPort",
+    "build": "npm run data:from-csv -- data/clubs.csv && tsc -b && vite build && node scripts/prerender-clubs.mjs",
+    "lint": "oxlint",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "data:dummy": "node scripts/generate-dummy-clubs.mjs",
+    "data:from-csv": "node scripts/csv-to-clubs.mjs",
+    "prerender": "node scripts/prerender-clubs.mjs"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.12",
+    "fuse.js": "^7.5.0",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.2"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^5.3.0",
+    "@types/leaflet": "^1.9.22",
+    "@types/leaflet.markercluster": "^1.5.6",
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.4",
+    "oxlint": "^1.75.0",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.0",
+    "vitest": "^4.1.10"
+  }
+}

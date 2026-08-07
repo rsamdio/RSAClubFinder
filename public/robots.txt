@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://clubs.rsamdio.org/sitemap.xml
