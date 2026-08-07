@@ -1,3 +1,5 @@
+[![Netlify Status](https://api.netlify.com/api/v1/badges/32a10838-d2ad-441c-9c1d-e9dc63301ce1/deploy-status)](https://app.netlify.com/projects/rsaclubfinder/deploys)
+
 # Club Finder
 
 Public, map-based discovery of Rotaract clubs across South Asia.

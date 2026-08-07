@@ -63,7 +63,14 @@
         dataLayer.push(arguments)
       }
       gtag('js', new Date())
+      // SPA: disable auto page_view so we control hits (initial + client navigations).
       gtag('config', 'G-XSRZKKWHT0', { send_page_view: false })
+      // First land (before React). AnalyticsRouteListener handles later route changes only.
+      gtag('event', 'page_view', {
+        page_path: location.pathname + location.search,
+        page_location: location.href,
+        page_title: document.title,
+      })
     </script>
 
     <script type="application/ld+json">
