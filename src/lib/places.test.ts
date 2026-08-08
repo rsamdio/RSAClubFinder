@@ -16,7 +16,6 @@ function club(partial: Partial<Club> & Pick<Club, 'club_id' | 'club_name' | 'cit
     country: 'India',
     state: 'Karnataka',
     charter_date: null,
-    status: 'active',
     meeting_location: null,
     meeting_day: null,
     meeting_time: null,

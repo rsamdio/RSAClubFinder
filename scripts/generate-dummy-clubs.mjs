@@ -66,8 +66,6 @@ const communityNames = [
   'Oasis', 'Beacon', 'Harmony', 'Frontier', 'Phoenix',
 ]
 
-const statuses = ['active', 'active', 'active', 'active', 'inactive', 'unknown']
-
 function slugify(name) {
   return name
     .toLowerCase()
@@ -126,7 +124,6 @@ for (const hub of hubs) {
       latitude: hasCoords ? Number(jitter(hub.lat).toFixed(6)) : null,
       longitude: hasCoords ? Number(jitter(hub.lng).toFixed(6)) : null,
       charter_date: Math.random() > 0.3 ? `${2005 + Math.floor(Math.random() * 20)}-07-01` : null,
-      status: pick(statuses),
       meeting_location: Math.random() > 0.4 ? `${hub.city} Community Hall` : null,
       meeting_day: Math.random() > 0.4 ? pick(['Saturday', 'Sunday', 'Friday', 'Wednesday']) : null,
       meeting_time: Math.random() > 0.4 ? pick(['10:00', '17:00', '18:30', '19:00']) : null,

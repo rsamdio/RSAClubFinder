@@ -150,12 +150,6 @@ export function ClubDetail({ club, onClose, onShare }: ClubDetailProps) {
           <dt>Zone</dt>
           <dd>{club.zone}</dd>
         </div>
-        {club.status ? (
-          <div>
-            <dt>Status</dt>
-            <dd className={`status status--${club.status}`}>{club.status}</dd>
-          </div>
-        ) : null}
         {club.meeting_day || club.meeting_time || club.meeting_location ? (
           <div>
             <dt>Meetings</dt>

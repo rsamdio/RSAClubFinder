@@ -422,7 +422,8 @@ export function FinderApp() {
     (nextId: string) => {
       const qs = searchParamsFromFilters(activeFilters).toString()
       navigate(`/club/${nextId}${qs ? `?${qs}` : ''}`)
-      if (!isDesktop) setSheetSnap('half')
+      // Mobile: club detail opens full; user can drag down to half/peek and pick another club.
+      if (!isDesktop) setSheetSnap('full')
     },
     [activeFilters, navigate, isDesktop],
   )
@@ -430,7 +431,13 @@ export function FinderApp() {
   function clearSelection() {
     const qs = searchParamsFromFilters(activeFilters).toString()
     navigate(qs ? `/?${qs}` : '/')
+    if (!isDesktop) setSheetSnap('half')
   }
+
+  // Deep link / refresh on a club page: same full-height default as in-app select.
+  useEffect(() => {
+    if (!isDesktop && clubId) setSheetSnap('full')
+  }, [clubId, isDesktop])
 
   async function handleNearMe() {
     try {
@@ -540,9 +547,8 @@ export function FinderApp() {
     return [...results, selectedInResults]
   }, [results, selectedInResults])
 
-  const sheetForLayout = selectedInResults || clubId ? 'half' : sheetSnap
   const showRecenter =
-    Boolean(myLocation) && (isDesktop || sheetForLayout !== 'full')
+    Boolean(myLocation) && (isDesktop || sheetSnap !== 'full')
 
   const panelBody = selectedInResults ? (
     <ClubDetail
@@ -640,7 +646,7 @@ export function FinderApp() {
   return (
     <div
       className={`finder ${isDesktop ? 'finder--desktop' : 'finder--mobile'}`}
-      data-sheet={isDesktop ? undefined : sheetForLayout}
+      data-sheet={isDesktop ? undefined : sheetSnap}
     >
       <header className="finder__brand">
         <a
@@ -712,7 +718,7 @@ export function FinderApp() {
       {isDesktop ? (
         <aside className="finder__panel">{panelBody}</aside>
       ) : (
-        <BottomSheet snap={selectedClub ? 'half' : sheetSnap} onSnapChange={setSheetSnap}>
+        <BottomSheet snap={sheetSnap} onSnapChange={setSheetSnap}>
           {panelBody}
         </BottomSheet>
       )}

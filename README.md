@@ -113,7 +113,7 @@ Legacy `club_type=institution` is mapped to `university`.
 - Interactive South Asia map with clustering (OSM/CARTO tiles); idle marker cap 300
 - Search on **Enter / Search**: club name, city (from dataset), or area (Mapbox)
 - Pan the map (zoomed in) to browse nearest clubs (~15)
-- Filters: country, state, city, district, zone, club type (searchable selects; no status filter)
+- Filters: country, state, city, district, zone, club type (searchable selects; active clubs only, no status field)
 - Shareable query URLs; club share links use `/club/{club_id}`
 - Club detail: visible email, icon social links, Contact CTA
 - Near Me (one-shot geolocation)

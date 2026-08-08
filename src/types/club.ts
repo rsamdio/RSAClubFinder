@@ -1,5 +1,4 @@
 export type ClubType = 'community' | 'university'
-export type ClubStatus = 'active' | 'inactive' | 'unknown'
 
 export interface Club {
   club_id: string
@@ -13,7 +12,6 @@ export interface Club {
   latitude: number | null
   longitude: number | null
   charter_date: string | null
-  status: ClubStatus
   meeting_location: string | null
   meeting_day: string | null
   meeting_time: string | null

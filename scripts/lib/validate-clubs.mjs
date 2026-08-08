@@ -118,12 +118,6 @@ export function validateClubRows(rows) {
     }
     nameKeys.add(nameKey)
 
-    let status = empty(row.status) ? 'unknown' : String(row.status).trim().toLowerCase()
-    if (!['active', 'inactive', 'unknown'].includes(status)) {
-      warnings.push(`L${line}: unknown status "${row.status}" → unknown`)
-      status = 'unknown'
-    }
-
     const lat = parseCoord(row.latitude, 'latitude')
     const lng = parseCoord(row.longitude, 'longitude')
     if (lat.error) errors.push(`L${line}: ${lat.error}`)
@@ -147,7 +141,6 @@ export function validateClubRows(rows) {
       latitude: lat.value != null && lng.value != null ? lat.value : null,
       longitude: lat.value != null && lng.value != null ? lng.value : null,
       charter_date: empty(row.charter_date) ? null : String(row.charter_date).trim(),
-      status,
       meeting_location: empty(row.meeting_location)
         ? null
         : String(row.meeting_location).trim(),

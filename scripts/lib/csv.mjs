@@ -85,7 +85,6 @@ export const CLUB_CSV_HEADERS = [
   'latitude',
   'longitude',
   'charter_date',
-  'status',
   'meeting_location',
   'meeting_day',
   'meeting_time',

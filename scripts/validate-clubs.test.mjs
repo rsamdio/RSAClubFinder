@@ -13,7 +13,6 @@ const base = {
   latitude: '12.97',
   longitude: '77.59',
   charter_date: '',
-  status: 'active',
   meeting_location: '',
   meeting_day: '',
   meeting_time: '',

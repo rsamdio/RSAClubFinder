@@ -98,7 +98,7 @@ Netlify
 
 ### Filters (keep)
 
-Country, state, city, **district**, zone, **club type**. No status filter (dataset is active clubs). Near Me is an action button (not a shareable filter). Filters shareable via query string (`src/lib/urlState.ts`). Long lists use searchable selects; club type uses a segmented control.
+Country, state, city, **district**, zone, **club type**. No status field or filter (dataset is active clubs only). Near Me is an action button (not a shareable filter). Filters shareable via query string (`src/lib/urlState.ts`). Long lists use searchable selects; club type uses a segmented control.
 
 ### Scale
 

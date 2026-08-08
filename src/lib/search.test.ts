@@ -13,7 +13,6 @@ function club(partial: Partial<Club> & Pick<Club, 'club_id' | 'club_name' | 'cit
     latitude: 12.93,
     longitude: 77.61,
     charter_date: null,
-    status: 'active',
     meeting_location: null,
     meeting_day: null,
     meeting_time: null,
