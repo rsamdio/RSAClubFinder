@@ -18,6 +18,7 @@ import {
 } from '../lib/places'
 import { MAP_BROWSE_MIN_ZOOM } from '../lib/mapTiles'
 import { haversineKm } from '../lib/haversine'
+import { findClubById, normalizeClubIdParam } from '../lib/clubId'
 import { HOME_TITLE, NOT_FOUND_TITLE, clubPageTitle } from '../lib/seoMeta'
 import { useClubs } from '../hooks/useClubs'
 import { useIsDesktop } from '../hooks/useMediaQuery'
@@ -46,7 +47,8 @@ export function FinderApp() {
   const isDesktop = useIsDesktop()
   const navigate = useNavigate()
   const params = useParams()
-  const clubId = params.clubId ?? null
+  const clubIdParam = params.clubId ?? null
+  const clubId = clubIdParam ? normalizeClubIdParam(clubIdParam) : null
   const [searchParams] = useSearchParams()
   const { location: myLocation, locating, error: nearMeError, requestLocation } =
     useNearMe()
@@ -86,14 +88,35 @@ export function FinderApp() {
 
   placeFocusRef.current = placeFocus
 
+  const selectedClub = useMemo(
+    () => findClubById(clubs, clubIdParam),
+    [clubs, clubIdParam],
+  )
+
+  // Hosts may lowercase paths; rewrite to the dataset's canonical club_id casing.
+  useEffect(() => {
+    if (!selectedClub || !clubIdParam) return
+    const normalized = normalizeClubIdParam(clubIdParam)
+    if (normalized === selectedClub.club_id) return
+    const qs = searchParamsFromFilters({
+      ...filters,
+      q: committedQuery,
+      nearMe: false,
+    }).toString()
+    navigate(`/club/${selectedClub.club_id}${qs ? `?${qs}` : ''}`, {
+      replace: true,
+    })
+  }, [selectedClub, clubIdParam, navigate, filters, committedQuery])
+
   useEffect(() => {
     if (clubId) {
-      const club = clubs.find((c) => c.club_id === clubId)
-      document.title = club ? clubPageTitle(club) : NOT_FOUND_TITLE
+      document.title = selectedClub
+        ? clubPageTitle(selectedClub)
+        : NOT_FOUND_TITLE
       return
     }
     document.title = HOME_TITLE
-  }, [clubId, clubs])
+  }, [clubId, selectedClub])
 
   const activeFilters = useMemo(
     () => ({ ...filters, q: committedQuery, nearMe: false }),
@@ -414,11 +437,6 @@ export function FinderApp() {
     committedQuery,
   ])
 
-  const selectedClub = useMemo(() => {
-    if (!clubId) return null
-    return clubs.find((c) => c.club_id === clubId) ?? null
-  }, [clubs, clubId])
-
   const selectedInResults = useMemo(() => {
     if (!selectedClub) return null
     return results.find((c) => c.club_id === selectedClub.club_id) ?? selectedClub
@@ -502,7 +520,7 @@ export function FinderApp() {
 
   async function shareClub() {
     if (!selectedClub) return
-    const url = `${window.location.origin}/club/${selectedClub.club_id}/`
+    const url = `${window.location.origin}/club/${selectedClub.club_id}`
     try {
       if (navigator.share) {
         await navigator.share({
@@ -644,7 +662,7 @@ export function FinderApp() {
         ) : (
           <ClubList
             clubs={results}
-            selectedClubId={clubId}
+            selectedClubId={selectedClub?.club_id ?? clubId}
             onSelect={onSelectClub}
             showDistance={Boolean(activeFocus)}
           />
@@ -683,7 +701,7 @@ export function FinderApp() {
       <div className="finder__map">
         <MapView
           clubs={mapClubs}
-          selectedClubId={clubId}
+          selectedClubId={selectedClub?.club_id ?? clubId}
           onSelectClub={onSelectClub}
           focusPoint={placeFocus}
           focusClub={selectedInResults}

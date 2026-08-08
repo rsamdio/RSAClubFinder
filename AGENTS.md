@@ -25,7 +25,7 @@ No login. No app database. Clubs live in static JSON; Mapbox only supplies a ses
 - Title suffix always ends with `| Rotaract South Asia MDIO`
 - Homepage title: `Club Finder - Find Rotaract Clubs Across South Asia | Rotaract South Asia MDIO`
 - Club title: `{Club name} · {City} | Club Finder | Rotaract South Asia MDIO`
-- Club canonical / sitemap: `/club/{club_id}/` (trailing slash)
+- Club canonical / sitemap: `/club/{club_id}` (no trailing slash; matches SPA routes)
 - `og:site_name`: `Club Finder | Rotaract South Asia MDIO`
 - OG image: `/og-club-finder.webp` (1200×630)
 - Prefer product phrasing **Club Finder** / **Club Finder by Rotaract South Asia MDIO (RSAMDIO)**. Do not use “RSAMDIO Club Finder” as the primary product title (legacy alternateName in schema only).
@@ -59,7 +59,7 @@ Browser (FinderApp)
   └─ Filters / share URLs   ← client-side; history.replaceState for query
 
 Netlify
-  ├─ Static dist/ SPA + prerendered /club/{club_id}/
+  ├─ Static dist/ SPA + prerendered /club/{club_id}/index.html
   ├─ Hidden docs: /about/, /how-to-find/ (static HTML; sitemap + llms.txt only; not linked from finder UI; must not SPA-rewrite)
   ├─ Unknown /club/* → 404.html (HTTP 404)
   └─ netlify/functions/geocode.ts  path: /api/geocode (q≤120, 30/IP/min via Blobs)

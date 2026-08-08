@@ -8,7 +8,7 @@
 
 # Known club pages are static files under /club/{id}/index.html (generated at build).
 # Unknown /club/* paths get a real HTTP 404 (static files take precedence over redirects).
-# Preferred URL shape is /club/{id}/ via canonical + sitemap (no forced 301 hop).
+# Preferred URL shape is /club/{id} via canonical + sitemap (no forced 301 hop).
 [[redirects]]
   from = "/club/*"
   to = "/404.html"

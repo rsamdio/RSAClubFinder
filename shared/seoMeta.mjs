@@ -68,9 +68,9 @@ export function clubPageDescription(club) {
   return parts.join(' ')
 }
 
-/** Canonical club URL with trailing slash (matches hubs + Netlify directory URLs). */
+/** Canonical club URL without trailing slash (matches SPA navigate). */
 export function clubPageUrl(clubId) {
-  return `${SITE_ORIGIN}/club/${encodeURIComponent(clubId)}/`
+  return `${SITE_ORIGIN}/club/${encodeURIComponent(clubId)}`
 }
 
 export function clubJsonLd(club) {

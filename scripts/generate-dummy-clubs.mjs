@@ -108,7 +108,8 @@ for (const hub of hubs) {
     }
 
     const hasCoords = Math.random() > 0.04
-    const id = `RC${String(seq).padStart(5, '0')}`
+    // Digit-only RI-style ids (no letter prefix). Start at 100001 so leading zeros never appear.
+    const id = String(100000 + seq)
     seq += 1
     const handle = slugify(shortName).slice(0, 24)
 

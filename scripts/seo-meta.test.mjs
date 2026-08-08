@@ -45,9 +45,9 @@ describe('seo-meta', () => {
     expect(desc).not.toContain('—')
   })
 
-  it('uses trailing slash club URLs', () => {
-    expect(clubPageUrl('RC00001')).toBe(
-      'https://clubs.rsamdio.org/club/RC00001/',
+  it('uses slash-free club URLs', () => {
+    expect(clubPageUrl('100001')).toBe(
+      'https://clubs.rsamdio.org/club/100001',
     )
   })
 

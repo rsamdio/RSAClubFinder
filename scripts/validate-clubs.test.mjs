@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { validateClubRows } from './lib/validate-clubs.mjs'
 
 const base = {
-  club_id: 'RC00001',
+  club_id: '100001',
   club_name: 'NIT Bengaluru',
   club_type: 'university',
   district: '3192',
@@ -45,7 +45,7 @@ describe('validateClubRows', () => {
 
   it('maps legacy institution tag to university', () => {
     const { clubs, report } = validateClubRows([
-      { ...base, club_id: 'RC00002', club_type: 'institution' },
+      { ...base, club_id: '100002', club_type: 'institution' },
     ])
     expect(report.valid).toBe(true)
     expect(clubs[0].club_type).toBe('university')
@@ -53,8 +53,8 @@ describe('validateClubRows', () => {
 
   it('rejects duplicate ids, bad emails, and phone columns', () => {
     const { report } = validateClubRows([
-      { ...base, club_id: 'RC1', public_email: 'not-an-email' },
-      { ...base, club_id: 'RC1', public_email: '' },
+      { ...base, club_id: '1001', public_email: 'not-an-email' },
+      { ...base, club_id: '1001', public_email: '' },
     ])
     expect(report.valid).toBe(false)
     expect(report.errors.some((e) => e.includes('duplicate club_id'))).toBe(true)

@@ -30,13 +30,13 @@ function club(partial: Partial<Club> & Pick<Club, 'club_id' | 'club_name' | 'cit
 
 const clubs: Club[] = [
   club({
-    club_id: 'RC1',
+    club_id: '100001',
     club_name: 'Rotaract Club of Christ University',
     club_type: 'university',
     city: 'Bengaluru',
   }),
   club({
-    club_id: 'RC2',
+    club_id: '100002',
     club_name: 'Rotaract Club of Colombo Central',
     district: '3220',
     zone: 'Zone 7',
@@ -56,7 +56,7 @@ describe('filterClubs', () => {
       ...EMPTY_FILTERS,
       q: 'Christ Bengaluru',
     })
-    expect(results.map((c) => c.club_id)).toContain('RC1')
+    expect(results.map((c) => c.club_id)).toContain('100001')
   })
 
   it('filters by country and type', () => {
@@ -66,7 +66,7 @@ describe('filterClubs', () => {
       type: 'community',
     })
     expect(results).toHaveLength(1)
-    expect(results[0].club_id).toBe('RC2')
+    expect(results[0].club_id).toBe('100002')
   })
 
   it('sorts by distance in place mode', () => {
@@ -76,7 +76,7 @@ describe('filterClubs', () => {
       radiusKm: 50,
       maxResults: 15,
     })
-    expect(results[0].club_id).toBe('RC1')
+    expect(results[0].club_id).toBe('100001')
     expect(results[0].distanceKm).toBeLessThan(5)
   })
 
@@ -86,7 +86,7 @@ describe('filterClubs', () => {
       placeMode: true,
       radiusKm: 5000,
     })
-    expect(results.map((c) => c.club_id)).toEqual(['RC1'])
+    expect(results.map((c) => c.club_id)).toEqual(['100001'])
   })
 
   it('requires strong club substring match (not fuzzy kolar→Kolkata)', () => {
