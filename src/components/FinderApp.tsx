@@ -18,6 +18,7 @@ import {
 } from '../lib/places'
 import { MAP_BROWSE_MIN_ZOOM } from '../lib/mapTiles'
 import { haversineKm } from '../lib/haversine'
+import { HOME_TITLE, NOT_FOUND_TITLE, clubPageTitle } from '../lib/seoMeta'
 import { useClubs } from '../hooks/useClubs'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useNearMe } from '../hooks/useNearMe'
@@ -84,6 +85,15 @@ export function FinderApp() {
   const cityIndex = useMemo(() => buildCityIndex(clubs), [clubs])
 
   placeFocusRef.current = placeFocus
+
+  useEffect(() => {
+    if (clubId) {
+      const club = clubs.find((c) => c.club_id === clubId)
+      document.title = club ? clubPageTitle(club) : NOT_FOUND_TITLE
+      return
+    }
+    document.title = HOME_TITLE
+  }, [clubId, clubs])
 
   const activeFilters = useMemo(
     () => ({ ...filters, q: committedQuery, nearMe: false }),
@@ -492,7 +502,7 @@ export function FinderApp() {
 
   async function shareClub() {
     if (!selectedClub) return
-    const url = `${window.location.origin}/club/${selectedClub.club_id}`
+    const url = `${window.location.origin}/club/${selectedClub.club_id}/`
     try {
       if (navigator.share) {
         await navigator.share({

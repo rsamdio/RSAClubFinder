@@ -25,9 +25,11 @@ No login. No app database. Clubs live in static JSON; Mapbox only supplies a ses
 - Title suffix always ends with `| Rotaract South Asia MDIO`
 - Homepage title: `Club Finder - Find Rotaract Clubs Across South Asia | Rotaract South Asia MDIO`
 - Club title: `{Club name} · {City} | Club Finder | Rotaract South Asia MDIO`
+- Club canonical / sitemap: `/club/{club_id}/` (trailing slash)
 - `og:site_name`: `Club Finder | Rotaract South Asia MDIO`
+- OG image: `/og-club-finder.webp` (1200×630)
 - Prefer product phrasing **Club Finder** / **Club Finder by Rotaract South Asia MDIO (RSAMDIO)**. Do not use “RSAMDIO Club Finder” as the primary product title (legacy alternateName in schema only).
-- Hidden crawl pages (no finder UI links): `/about/`, `/how-to-find/`, plus `llms.txt`. Meta helpers: `scripts/lib/seo-meta.mjs`.
+- Hidden crawl pages (no finder UI links): `/about/`, `/how-to-find/`, plus `llms.txt`. Meta helpers: `shared/seoMeta.mjs`.
 - Helpers and prerender: `scripts/prerender-clubs.mjs`
 
 ## Commands
@@ -149,7 +151,7 @@ In Netlify Functions use `Netlify.env.get(...)`, not `process.env`.
 | Geocode function | `netlify/functions/geocode.ts` |
 | Club types | `src/types/club.ts` |
 | CSV → JSON | `scripts/csv-to-clubs.mjs`, `scripts/lib/validate-clubs.mjs` |
-| Prerender / sitemap | `scripts/prerender-clubs.mjs`, `scripts/lib/seo-meta.mjs` |
+| Prerender / sitemap | `scripts/prerender-clubs.mjs`, `shared/seoMeta.mjs` |
 | Hidden SEO pages | `public/about/`, `public/how-to-find/`, `public/llms.txt` |
 | Netlify config | `netlify.toml` |
 

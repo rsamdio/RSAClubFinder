@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   HOME_TITLE,
+  OG_IMAGE_URL,
   OG_SITE_NAME,
   clubPageDescription,
   clubPageTitle,
+  clubPageUrl,
   hubTitle,
-} from './lib/seo-meta.mjs'
+} from '../shared/seoMeta.mjs'
 
 describe('seo-meta', () => {
   it('locks homepage and site name formulas', () => {
@@ -41,5 +43,15 @@ describe('seo-meta', () => {
     expect(desc).toContain('Colombo, Sri Lanka')
     expect(desc).toContain('Club Finder by Rotaract South Asia MDIO (RSAMDIO)')
     expect(desc).not.toContain('—')
+  })
+
+  it('uses trailing slash club URLs', () => {
+    expect(clubPageUrl('RC00001')).toBe(
+      'https://clubs.rsamdio.org/club/RC00001/',
+    )
+  })
+
+  it('points OG image at webp asset', () => {
+    expect(OG_IMAGE_URL).toBe('https://clubs.rsamdio.org/og-club-finder.webp')
   })
 })
