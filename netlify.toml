@@ -39,6 +39,21 @@
     Cache-Control = "public, max-age=3600, stale-while-revalidate=86400"
 
 [[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/fonts/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/brand/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
   for = "/*"
   [headers.values]
     # Allow iframe embeds only on the official MDIO site (+ local hub). Not *.rsamdio.org.

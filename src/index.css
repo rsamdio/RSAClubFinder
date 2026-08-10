@@ -1,49 +1,54 @@
 /* RSAMDIO / Rotary-aligned web fonts (same stack as rsamdio.org) */
 @font-face {
   font-family: 'Open Sans';
-  src: url('/fonts/open-sans/open-sans-400.ttf') format('truetype');
+  src:
+    url('/fonts/open-sans/open-sans-400.woff2') format('woff2'),
+    url('/fonts/open-sans/open-sans-400.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Open Sans';
-  src: url('/fonts/open-sans/open-sans-500.ttf') format('truetype');
+  src:
+    url('/fonts/open-sans/open-sans-500.woff2') format('woff2'),
+    url('/fonts/open-sans/open-sans-500.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Open Sans';
-  src: url('/fonts/open-sans/open-sans-600.ttf') format('truetype');
+  src:
+    url('/fonts/open-sans/open-sans-600.woff2') format('woff2'),
+    url('/fonts/open-sans/open-sans-600.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Open Sans';
-  src: url('/fonts/open-sans/open-sans-700.ttf') format('truetype');
+  src:
+    url('/fonts/open-sans/open-sans-700.woff2') format('woff2'),
+    url('/fonts/open-sans/open-sans-700.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
-  font-family: 'Open Sans';
-  src: url('/fonts/open-sans/open-sans-800.ttf') format('truetype');
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
   font-family: 'Sentinel';
-  src: url('/fonts/Sentinel-Medium.ttf') format('truetype');
+  src:
+    url('/fonts/Sentinel-Medium.woff2') format('woff2'),
+    url('/fonts/Sentinel-Medium.ttf') format('truetype');
   font-weight: 500;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Sentinel';
-  src: url('/fonts/Sentinel-Bold.ttf') format('truetype');
+  src:
+    url('/fonts/Sentinel-Bold.woff2') format('woff2'),
+    url('/fonts/Sentinel-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;

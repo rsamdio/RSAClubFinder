@@ -12,7 +12,7 @@ export function useClubs() {
     let cancelled = false
     async function load() {
       try {
-        const res = await fetch('/data/clubs.json')
+        const res = await fetch('/data/clubs.json', { credentials: 'omit' })
         if (!res.ok) throw new Error('Could not load clubs right now. Please refresh and try again.')
         const data = (await res.json()) as ClubsDataset
         if (!cancelled) {

@@ -188,7 +188,20 @@ export async function geocodePlace(
     return { focus: null, error: 'Could not reach place search. Check your network.' }
   }
 
-  const data = (await res.json()) as {
+  const contentType =
+    typeof res.headers?.get === 'function'
+      ? (res.headers.get('content-type') ?? '')
+      : ''
+  // SPA fallbacks often return 200 HTML for missing /api/geocode.
+  if (contentType && !contentType.includes('application/json')) {
+    return {
+      focus: null,
+      error:
+        'Place search is temporarily unavailable. Try a city or club name, or pan the map.',
+    }
+  }
+
+  let data: {
     place?: {
       lat: number
       lng: number
@@ -198,6 +211,15 @@ export async function geocodePlace(
     } | null
     error?: string
     reason?: string
+  }
+  try {
+    data = (await res.json()) as typeof data
+  } catch {
+    return {
+      focus: null,
+      error:
+        'Place search is temporarily unavailable. Try a city or club name, or pan the map.',
+    }
   }
 
   if (res.status === 429 || data.reason === 'rate_limited') {

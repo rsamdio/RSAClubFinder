@@ -13,10 +13,11 @@ Standalone **public Club Finder** for Rotaract clubs across South Asia, by **Rot
 | Affiliation | Club Finder by Rotaract South Asia MDIO (RSAMDIO) |
 | GitHub | https://github.com/rsamdio/RSAClubFinder.git |
 | Hosting | Netlify (SPA + Functions) |
-| Stack | Vite + React 19 + TypeScript, Leaflet + markercluster, Fuse.js |
+| Stack | Vite + React 19 + TypeScript, Leaflet + markercluster (lazy-loaded), Fuse.js |
 | Data | Static `public/data/clubs.json` built from `data/clubs.csv` |
 | Map tiles | Free OSM/CARTO (Leaflet) — no Mapbox tile billing |
 | Place search | Mapbox Temporary Geocoding via Netlify `/api/geocode` only |
+| Fonts | Self-hosted Open Sans + Sentinel (`public/fonts`, woff2 + TTF fallback) |
 
 No login. No app database. Clubs live in static JSON; Mapbox only supplies a session map pin for area search.
 
@@ -45,7 +46,7 @@ npm run data:dummy     # regenerates sample + dummy + seeds data/clubs.csv
 npm run data:from-csv -- data/clubs.csv
 ```
 
-Optional: `npx netlify dev` for production-like functions. Local Vite already proxies geocode when `MAPBOX_ACCESS_TOKEN` is set.
+Optional: `npx netlify dev` for production-like functions. Local Vite (`npm run dev` and `npm run preview`) serves `/api/geocode` when `MAPBOX_ACCESS_TOKEN` is set.
 
 ## Architecture (settled)
 
@@ -57,6 +58,9 @@ Browser (FinderApp)
   ├─ Recenter (map control) ← pan to known me only; no search bubble / list change
   ├─ Map pan browse         ← nearest clubs to map center (zoom ≥ 10); list-only, never steals camera
   └─ Filters / share URLs   ← client-side; history.replaceState for query
+
+Cold load: MapView/Leaflet is React.lazy; clubs.json is preloaded from index.html; fonts are woff2.
+Do not regress Enter-only search or camera ownership when changing the load path.
 
 Netlify
   ├─ Static dist/ SPA + prerendered /club/{club_id}/index.html
@@ -75,7 +79,7 @@ Netlify
 6. Keep a tiny `CITY_ALIASES` map only (e.g. Bangalore → Bengaluru).
 7. Mapbox results are **temporary / session-only** (never write geocode coords into `clubs.json`).
 8. **Tiles are always free OSM/CARTO** (Leaflet). Mapbox is geocode-only.
-9. Brand UI: RSAMDIO cranberry `#D41B69` (not teal). Logo in header (`/brand/rsamdio.webp`); fonts match rsamdio.org: **Open Sans** + **Sentinel** (self-hosted in `public/fonts`).
+9. Brand UI: RSAMDIO cranberry `#D41B69` (not teal). Logo in header (`/brand/rsamdio.webp`); fonts match rsamdio.org: **Open Sans** + **Sentinel** (self-hosted woff2 + TTF in `public/fonts`).
 10. User-facing copy: no Mapbox / token / stack jargon; speak only in visitor terms (search, map, near you).
 11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).

@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import type { ClubFilters } from '../types/club'
 import { filterClubs, hasStrongClubMatch } from '../lib/search'
@@ -19,11 +27,11 @@ import {
 import { MAP_BROWSE_MIN_ZOOM } from '../lib/mapTiles'
 import { haversineKm } from '../lib/haversine'
 import { findClubById, normalizeClubIdParam } from '../lib/clubId'
+import { IDLE_MAP_MARKER_CAP, type MapViewState } from '../lib/mapViewTypes'
 import { HOME_TITLE, NOT_FOUND_TITLE, clubPageTitle } from '../lib/seoMeta'
 import { useClubs } from '../hooks/useClubs'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useNearMe } from '../hooks/useNearMe'
-import { IDLE_MAP_MARKER_CAP, MapView, type MapViewState } from './MapView'
 import { SearchBar } from './SearchBar'
 import { FilterPanel } from './FilterPanel'
 import { ClubList } from './ClubList'
@@ -31,6 +39,10 @@ import { ClubDetail } from './ClubDetail'
 import { BottomSheet, type SheetSnap } from './BottomSheet'
 import { LocationPrompt } from './LocationPrompt'
 import { Toast } from './Toast'
+
+const MapView = lazy(() =>
+  import('./MapView').then((m) => ({ default: m.MapView })),
+)
 
 const LOCATION_PROMPT_KEY = 'rsamdio-cf-welcome-location'
 
@@ -699,21 +711,27 @@ export function FinderApp() {
       </header>
 
       <div className="finder__map">
-        <MapView
-          clubs={mapClubs}
-          selectedClubId={selectedClub?.club_id ?? clubId}
-          onSelectClub={onSelectClub}
-          focusPoint={placeFocus}
-          focusClub={selectedInResults}
-          myLocation={myLocation}
-          mePulseKey={mePulseKey}
-          recenterKey={recenterKey}
-          radiusKm={placeFocus && placeMode ? activeRadius : null}
-          trackView={(!placeFocus || placeFocus.source === 'user') && !clubId}
-          autoFitResults={autoFitResults}
-          markerCap={mapMarkerCap}
-          onViewChange={handleMapViewChange}
-        />
+        <Suspense
+          fallback={
+            <div className="map-view" aria-label="Rotaract clubs map" />
+          }
+        >
+          <MapView
+            clubs={mapClubs}
+            selectedClubId={selectedClub?.club_id ?? clubId}
+            onSelectClub={onSelectClub}
+            focusPoint={placeFocus}
+            focusClub={selectedInResults}
+            myLocation={myLocation}
+            mePulseKey={mePulseKey}
+            recenterKey={recenterKey}
+            radiusKm={placeFocus && placeMode ? activeRadius : null}
+            trackView={(!placeFocus || placeFocus.source === 'user') && !clubId}
+            autoFitResults={autoFitResults}
+            markerCap={mapMarkerCap}
+            onViewChange={handleMapViewChange}
+          />
+        </Suspense>
         {showRecenter ? (
           <button
             type="button"

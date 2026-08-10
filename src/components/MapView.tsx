@@ -12,9 +12,10 @@ import {
   SOUTH_ASIA_CENTER,
   SOUTH_ASIA_ZOOM,
 } from '../lib/mapTiles'
+import { IDLE_MAP_MARKER_CAP, type MapViewState } from '../lib/mapViewTypes'
 
-/** Idle map hard-cap — browse/place lists stay ~15 in FinderApp. */
-export const IDLE_MAP_MARKER_CAP = 300
+export type { MapViewState } from '../lib/mapViewTypes'
+export { IDLE_MAP_MARKER_CAP } from '../lib/mapViewTypes'
 
 const DEFAULT_ICON = L.divIcon({
   className: 'club-marker',
@@ -49,12 +50,6 @@ function tipForClub(club: ClubWithDistance): string {
   return club.distanceKm != null
     ? `${club.club_name} · ${club.distanceKm < 10 ? club.distanceKm.toFixed(1) : Math.round(club.distanceKm)} km`
     : club.club_name
-}
-
-export interface MapViewState {
-  lat: number
-  lng: number
-  zoom: number
 }
 
 export interface MyLocation {
