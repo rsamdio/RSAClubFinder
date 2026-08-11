@@ -87,7 +87,7 @@ Required: `club_id`, `club_name`, `club_type`, `district`, `zone`, `country`, `c
 | Column | Notes |
 | --- | --- |
 | `club_name` | **Short name only** (e.g. `NIT Bengaluru`). Build prefixes `Rotaract Club of `. |
-| `club_type` | `community` or `university` |
+| `club_type` | `Community` or `University` (lowercase also accepted; JSON stores `community` / `university`) |
 | `zone` | Digit only (`4`); JSON shows `Zone 4` |
 | `public_email`, `website`, `instagram`, `facebook`, `linkedin`, `youtube` | Optional public contacts |
 | `latitude`, `longitude` | Optional; clubs without coords still appear in search/list |

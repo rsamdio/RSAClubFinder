@@ -337,14 +337,16 @@ export function FinderApp() {
     }
   }, [committedQuery, cityIndex, clubs, fuse])
 
-  const browseMode =
-    !clubId &&
+  // Browse list chrome vs map nearby context: keep geo-nearest markers while a club is open.
+  const browseEligible =
     !placeFocus &&
     committedQuery.trim().length < 2 &&
     Boolean(mapView && mapView.zoom >= MAP_BROWSE_MIN_ZOOM)
 
+  const browseMode = browseEligible && !clubId
+
   const mapBrowseFocus = useMemo<PlaceFocus | null>(() => {
-    if (!browseMode || !mapView) return null
+    if (!browseEligible || !mapView) return null
     return {
       lat: mapView.lat,
       lng: mapView.lng,
@@ -352,7 +354,7 @@ export function FinderApp() {
       source: 'map',
       zoom: mapView.zoom,
     }
-  }, [browseMode, mapView])
+  }, [browseEligible, mapView])
 
   const activeFocus = placeFocus ?? mapBrowseFocus
 
@@ -572,20 +574,53 @@ export function FinderApp() {
 
   const autoFitResults =
     !placeFocus &&
-    !browseMode &&
+    !browseEligible &&
     committedQuery.trim().length >= 2 &&
     hasStrongClubMatch(clubs, committedQuery)
 
   const clubMissing = Boolean(clubId) && !loading && !selectedClub
 
+  // Place / Near Me / club-name search drive the map set. Browse is list-only (idle markers).
   const mapMarkerCap =
-    placeMode || autoFitResults ? null : IDLE_MAP_MARKER_CAP
+    placeFocus || autoFitResults ? null : IDLE_MAP_MARKER_CAP
 
   const mapClubs = useMemo(() => {
-    if (!selectedInResults) return results
-    if (results.some((c) => c.club_id === selectedInResults.club_id)) return results
-    return [...results, selectedInResults]
-  }, [results, selectedInResults])
+    let base = results
+
+    // Map pan browse: list shows ~15 nearest; map keeps the full filtered set (idle cap).
+    if (mapBrowseFocus && !placeFocus) {
+      base = filterClubs(clubs, null, { ...activeFilters, q: '' }, {})
+    } else if (
+      selectedInResults &&
+      !placeFocus &&
+      !autoFitResults &&
+      !mapBrowseFocus &&
+      selectedInResults.latitude != null &&
+      selectedInResults.longitude != null
+    ) {
+      // Cold /club/{id} with no browse context: ~15 neighbors around the club.
+      base = clubsNearPoint(
+        clubs,
+        {
+          lat: selectedInResults.latitude,
+          lng: selectedInResults.longitude,
+        },
+        80,
+      ).slice(0, 15)
+    }
+
+    if (!selectedInResults) return base
+    if (base.some((c) => c.club_id === selectedInResults.club_id)) return base
+    return [...base, selectedInResults]
+  }, [
+    results,
+    selectedInResults,
+    placeFocus,
+    mapBrowseFocus,
+    autoFitResults,
+    clubs,
+    activeFilters,
+  ])
 
   const showRecenter =
     Boolean(myLocation) && (isDesktop || sheetSnap !== 'full')

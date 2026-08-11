@@ -107,6 +107,7 @@ function MapViewComponent({
   const lastFocusKey = useRef<string>('')
   const lastMarkersKey = useRef<string>('')
   const lastClubFlyId = useRef<string>('')
+  const lastResultFitKey = useRef('')
   const lastRecenterKey = useRef(0)
   const lastPulseKey = useRef(0)
   const onSelectClubRef = useRef(onSelectClub)
@@ -167,6 +168,11 @@ function MapViewComponent({
     })
     observer.observe(containerRef.current)
 
+    // Container may not have final size on first paint (lazy MapView / sheet layout).
+    requestAnimationFrame(() => {
+      map.invalidateSize({ animate: false })
+    })
+
     return () => {
       observer.disconnect()
       map.remove()
@@ -175,6 +181,14 @@ function MapViewComponent({
       focusLayerRef.current = null
       meLayerRef.current = null
       meMarkerRef.current = null
+      markersById.current.clear()
+      // Strict Mode remounts the map with a fresh cluster; without resetting these
+      // keys the marker effect thinks the set is unchanged and leaves the map empty
+      // until a zoom/browse change rewrites markersKey.
+      lastMarkersKey.current = ''
+      lastFocusKey.current = ''
+      lastClubFlyId.current = ''
+      lastResultFitKey.current = ''
     }
   }, [])
 
@@ -232,21 +246,37 @@ function MapViewComponent({
     return list
   })()
 
-  // Markers: rebuild only when the club id set actually changes
-  const markersKey = displayClubs.map((c) => c.club_id).join('|')
+  // Markers: rebuild only when membership changes (order-independent key avoids sort flicker).
+  const markersKey = displayClubs
+    .map((c) => c.club_id)
+    .slice()
+    .sort()
+    .join('|')
   useEffect(() => {
     const cluster = clusterRef.current
-    if (!cluster) return
+    const map = mapRef.current
+    if (!cluster || !map) return
     if (markersKey === lastMarkersKey.current) {
       return
     }
     lastMarkersKey.current = markersKey
 
-    cluster.clearLayers()
-    markersById.current.clear()
+    const nextIds = new Set(
+      displayClubs
+        .filter((c) => c.latitude != null && c.longitude != null)
+        .map((c) => c.club_id),
+    )
+
+    // Incremental update: drop removed, add new — avoid full clearLayers flicker.
+    for (const [id, marker] of [...markersById.current]) {
+      if (nextIds.has(id)) continue
+      cluster.removeLayer(marker)
+      markersById.current.delete(id)
+    }
 
     for (const club of displayClubs) {
       if (club.latitude == null || club.longitude == null) continue
+      if (markersById.current.has(club.club_id)) continue
       const marker = L.marker([club.latitude, club.longitude], {
         title: club.club_name,
         icon: DEFAULT_ICON,
@@ -260,6 +290,7 @@ function MapViewComponent({
       markersById.current.set(club.club_id, marker)
       cluster.addLayer(marker)
     }
+    cluster.refreshClusters()
   }, [displayClubs, markersKey])
 
   // Keep selected pin highlighted without rebuilding the whole cluster set
@@ -446,7 +477,6 @@ function MapViewComponent({
   }, [focusClub])
 
   // Intentional club-name search only: never auto-fit during map browse
-  const lastResultFitKey = useRef('')
   useEffect(() => {
     const map = mapRef.current
     if (!autoFitResults) {

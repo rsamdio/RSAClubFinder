@@ -25,6 +25,7 @@ function normalizeClubType(raw, line, warnings) {
   const value = String(raw ?? '')
     .trim()
     .toLowerCase()
+  // CSV may use Community / University (title case); JSON keeps RI lowercase tags.
   if (value === 'community' || value === 'university') return value
   if (value === 'institution') {
     warnings.push(`L${line}: club_type "institution" mapped to "university" (RI tag)`)
@@ -100,7 +101,7 @@ export function validateClubRows(rows) {
     if (!clubId) errors.push(`L${line}: missing club_id`)
     if (!rawName) errors.push(`L${line}: missing club_name`)
     if (!['community', 'university'].includes(clubType)) {
-      errors.push(`L${line}: club_type must be community|university`)
+      errors.push(`L${line}: club_type must be Community|University (or community|university)`)
     }
     if (!district) errors.push(`L${line}: missing district`)
     if (!country) errors.push(`L${line}: missing country`)

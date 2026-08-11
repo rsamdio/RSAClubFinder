@@ -51,6 +51,16 @@ describe('validateClubRows', () => {
     expect(clubs[0].club_type).toBe('university')
   })
 
+  it('accepts title-case Community and University from CSV', () => {
+    const { clubs, report } = validateClubRows([
+      { ...base, club_id: '100010', club_type: 'Community' },
+      { ...base, club_id: '100011', club_type: 'University' },
+    ])
+    expect(report.valid).toBe(true)
+    expect(clubs[0].club_type).toBe('community')
+    expect(clubs[1].club_type).toBe('university')
+  })
+
   it('rejects duplicate ids, bad emails, and phone columns', () => {
     const { report } = validateClubRows([
       { ...base, club_id: '1001', public_email: 'not-an-email' },

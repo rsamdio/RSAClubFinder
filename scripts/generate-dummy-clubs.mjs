@@ -91,7 +91,7 @@ for (const hub of hubs) {
     let clubType
 
     if (isUniversity) {
-      clubType = 'university'
+      clubType = 'University'
       const base = pick(institutions)
       if (base === 'University of') shortName = `University of ${hub.city}`
       else if (base === 'IIT') shortName = `IIT ${hub.city}`
@@ -99,7 +99,7 @@ for (const hub of hubs) {
       else if (base === 'BITS') shortName = `BITS ${hub.city}`
       else shortName = `${base} ${hub.city}`
     } else {
-      clubType = 'community'
+      clubType = 'Community'
       shortName = i === 0 ? hub.city : `${hub.city} ${pick(communityNames)}`
     }
 
@@ -135,7 +135,7 @@ for (const hub of hubs) {
       linkedin: Math.random() > 0.85 ? `https://linkedin.com/company/${handle}` : null,
       youtube: Math.random() > 0.9 ? `https://youtube.com/@${handle.replace(/-/g, '')}` : null,
       description: Math.random() > 0.5
-        ? `A ${clubType === 'university' ? 'university' : 'community'}-based Rotaract club serving ${hub.city}, ${hub.country}.`
+        ? `A ${clubType === 'University' ? 'university' : 'community'}-based Rotaract club serving ${hub.city}, ${hub.country}.`
         : null,
       last_updated: '2026-08-01',
     })
