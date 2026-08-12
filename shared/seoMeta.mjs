@@ -17,7 +17,7 @@ export const OG_IMAGE_URL = `${SITE_ORIGIN}${OG_IMAGE_PATH}`
 export const OG_IMAGE_WIDTH = 1200
 export const OG_IMAGE_HEIGHT = 630
 export const OG_IMAGE_ALT =
-  'Club Finder by Rotaract South Asia MDIO: Rotaract clubs across South Asia'
+  'Club Finder by Rotaract South Asia MDIO: Find Rotaract clubs across South Asia'
 
 export const HOME_TITLE =
   'Club Finder - Find Rotaract Clubs Across South Asia | Rotaract South Asia MDIO'
