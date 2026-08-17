@@ -227,8 +227,9 @@ export function FinderApp() {
     const cityExact = matchCityPlace(q, cityIndex)
     const strongClub = hasStrongClubMatch(clubs, q)
 
-    // Club-name intent: substring match only (never Fuse “kolar”→Kolkata)
-    if (!placeLike && !cityExact && strongClub) {
+    // Club-name intent: exact club match overrides loose place-like heuristics.
+    // If it's a specific club, we want that club, not a Mapbox geocode.
+    if (!cityExact && strongClub) {
       setPlaceFocus(null)
       setPlaceRadiusKm(null)
       setPlaceMaxResults(null)
@@ -581,20 +582,24 @@ export function FinderApp() {
   const clubMissing = Boolean(clubId) && !loading && !selectedClub
 
   // Place / Near Me / club-name search drive the map set. Browse is list-only (idle markers).
-  const mapMarkerCap =
-    placeFocus || autoFitResults ? null : IDLE_MAP_MARKER_CAP
+  // Always cap — even for autoFitResults. The autoFit effect already skips when >40 clubs, so
+  // the uncapped path was only reachable for large fuzzy matches and caused unnecessary marker churn.
+  const mapMarkerCap = placeFocus ? null : IDLE_MAP_MARKER_CAP
 
   const mapClubs = useMemo(() => {
     let base = results
 
     // Map pan browse: list shows ~15 nearest; map keeps the full filtered set (idle cap).
+    // This MUST apply whether or not a club is open — selecting a club should NOT
+    // change the visible marker set. The geo-sorted idle cap in MapView ensures
+    // only the nearest ~300 markers render, so this is safe even at 5 000 clubs.
     if (mapBrowseFocus && !placeFocus) {
       base = filterClubs(clubs, null, { ...activeFilters, q: '' }, {})
     } else if (
       selectedInResults &&
       !placeFocus &&
       !autoFitResults &&
-      !mapBrowseFocus &&
+      !mapView &&
       selectedInResults.latitude != null &&
       selectedInResults.longitude != null
     ) {
@@ -618,6 +623,7 @@ export function FinderApp() {
     placeFocus,
     mapBrowseFocus,
     autoFitResults,
+    mapView,
     clubs,
     activeFilters,
   ])

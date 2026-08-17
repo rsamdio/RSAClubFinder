@@ -133,6 +133,7 @@ export function ClubDetail({ club, onClose, onShare }: ClubDetailProps) {
       <p className="club-detail__subtitle">
         {club.club_type === 'university' ? 'University Based' : 'Community Based'}
         {club.distanceKm != null ? ` · ${formatDistance(club.distanceKm)}` : ''}
+        {` · Club ID: ${club.club_id}`}
       </p>
 
       <dl className="club-detail__facts">

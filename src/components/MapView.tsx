@@ -221,12 +221,39 @@ function MapViewComponent({
   }, [trackView])
 
   const displayClubs = (() => {
-    let list =
-      markerCap != null && clubs.length > markerCap
-        ? clubs
-            .filter((c) => c.latitude != null && c.longitude != null)
-            .slice(0, markerCap)
-        : clubs
+    let list: ClubWithDistance[]
+
+    if (markerCap != null && clubs.length > markerCap) {
+      const validCoords = clubs.filter(
+        (c) => c.latitude != null && c.longitude != null,
+      )
+      // Geo-sort toward the destination center before capping. If a club is selected,
+      // use its coordinates so the markers that survive the slice are centered around
+      // where the user is going. Otherwise use the current map center.
+      const centerLat = focusClub?.latitude ?? mapRef.current?.getCenter()?.lat
+      const centerLng = focusClub?.longitude ?? mapRef.current?.getCenter()?.lng
+      
+      if (centerLat != null && centerLng != null) {
+        validCoords.sort(
+          (a, b) =>
+            haversineKm(
+              centerLat,
+              centerLng,
+              a.latitude as number,
+              a.longitude as number,
+            ) -
+            haversineKm(
+              centerLat,
+              centerLng,
+              b.latitude as number,
+              b.longitude as number,
+            ),
+        )
+      }
+      list = validCoords.slice(0, markerCap)
+    } else {
+      list = clubs
+    }
 
     // Keep the open club visible even if it falls outside an idle marker cap.
     if (selectedClubId || focusClub) {
@@ -267,13 +294,18 @@ function MapViewComponent({
         .map((c) => c.club_id),
     )
 
-    // Incremental update: drop removed, add new — avoid full clearLayers flicker.
+    // Batch removals then additions — using Leaflet's bulk APIs avoids the
+    // partial-redraw flash that occurs when many individual removeLayer/addLayer
+    // calls trigger intermediate cluster refreshes.
+    const toRemove: L.Marker[] = []
     for (const [id, marker] of [...markersById.current]) {
       if (nextIds.has(id)) continue
-      cluster.removeLayer(marker)
+      toRemove.push(marker)
       markersById.current.delete(id)
     }
+    if (toRemove.length) cluster.removeLayers(toRemove)
 
+    const toAdd: L.Marker[] = []
     for (const club of displayClubs) {
       if (club.latitude == null || club.longitude == null) continue
       if (markersById.current.has(club.club_id)) continue
@@ -288,8 +320,9 @@ function MapViewComponent({
       })
       marker.on('click', () => onSelectClubRef.current(club.club_id))
       markersById.current.set(club.club_id, marker)
-      cluster.addLayer(marker)
+      toAdd.push(marker)
     }
+    if (toAdd.length) cluster.addLayers(toAdd)
     cluster.refreshClusters()
   }, [displayClubs, markersKey])
 

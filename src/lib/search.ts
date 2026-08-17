@@ -176,11 +176,6 @@ export function filterClubs(
   // Place / locate mode: nearby by distance; text uses strong substring only
   if (origin && placeMode) {
     let pool = result
-    if (query.length >= 3) {
-      const q = query.toLowerCase()
-      const narrowed = pool.filter((c) => c.club_name.toLowerCase().includes(q))
-      if (narrowed.length) pool = narrowed
-    }
 
     let ranked = withDistances(pool, origin)
     if (radiusKm != null) {

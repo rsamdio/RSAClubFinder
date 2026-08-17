@@ -80,14 +80,6 @@ describe('filterClubs', () => {
     expect(results[0].distanceKm).toBeLessThan(5)
   })
 
-  it('narrows place-mode list with strong club substring only', () => {
-    const results = filterClubs(clubs, fuse, { ...EMPTY_FILTERS, q: 'Christ' }, {
-      origin: { lat: 12.97, lng: 77.59 },
-      placeMode: true,
-      radiusKm: 5000,
-    })
-    expect(results.map((c) => c.club_id)).toEqual(['100001'])
-  })
 
   it('requires strong club substring match (not fuzzy kolar→Kolkata)', () => {
     expect(hasStrongClubMatch(clubs, 'Christ')).toBe(true)
