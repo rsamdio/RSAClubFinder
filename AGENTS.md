@@ -73,7 +73,7 @@ Netlify
 
 1. **Commit search only on Enter or Clear** (never debounce-while-typing; causes map/list thrash).
 2. Resolve order: **exact city (from clubs)** → **Mapbox geocode** → **city-word fallback** in the query.
-3. Skip geocode only for a **strong** club-name substring match (not Fuse near-misses; `kolar` must not become Kolkata clubs).
+3. Skip geocode for a **strong** club-name substring match (not Fuse near-misses; `kolar` must not become Kolkata clubs). Strong club match takes priority over loose place-like heuristics (e.g. `Mumbai Jewels` is treated as a club search, not a geocoded Mumbai neighborhood).
 4. Do **not** stick previous city context onto bare place queries (Ghansoli→Mumbai must not bias later `Kolar`).
 5. Tiny expansions only (e.g. `KGF` → Kolar Gold Fields); no localities gazetteer.
 6. Keep a tiny `CITY_ALIASES` map only (e.g. Bangalore → Bengaluru).
@@ -84,7 +84,7 @@ Netlify
 11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).
 13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan. After a successful locate, keep a quiet standing **me** marker for the tab session (survives pan/zoom/place search). **Recenter** (bottom-right map control) only pans to that me point; it must not create a Near Me search session or change the club list.
-14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. Deep-link `/club/{id}` shows ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the idle marker set (cap 300). `trackView` stays off while a club is open (frozen browse center; no list thrash).
+14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the geo-sorted marker set (cap 300 centered on viewport or destination club). `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
 
 ### Club types (RI)
 

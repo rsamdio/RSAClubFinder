@@ -156,12 +156,8 @@ export function ClubDetail({ club, onClose, onShare }: ClubDetailProps) {
             <dt>Meetings</dt>
             <dd>
               {[club.meeting_day, club.meeting_time].filter(Boolean).join(' · ')}
-              {club.meeting_location ? (
-                <>
-                  <br />
-                  {club.meeting_location}
-                </>
-              ) : null}
+              {(club.meeting_day || club.meeting_time) && club.meeting_location ? <br /> : null}
+              {club.meeting_location}
             </dd>
           </div>
         ) : null}
