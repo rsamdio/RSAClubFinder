@@ -1,13 +1,13 @@
-/** Configurable tile provider — swap without rewriting the app. */
 export interface TileConfig {
   url: string
   attribution: string
   maxZoom: number
   subdomains?: string | string[]
+  layerConfig?: string
 }
 
 /**
- * Free basemap: CARTO Positron on OpenStreetMap data.
+ * Free basemap: CARTO Positron on OpenStreetMap data with India boundary corrections.
  * Cost-conscious default for an NGO — Mapbox is used only for geocoding, not tiles.
  */
 export const OSM_CARTO_TILES: TileConfig = {
@@ -16,6 +16,7 @@ export const OSM_CARTO_TILES: TileConfig = {
     '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
   maxZoom: 19,
   subdomains: 'abcd',
+  layerConfig: 'cartodb-light',
 }
 
 export function getTileConfig(): TileConfig {

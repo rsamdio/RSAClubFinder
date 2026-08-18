@@ -4,6 +4,7 @@ import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
 import 'leaflet.markercluster/dist/MarkerCluster.css'
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css'
+import { extendLeaflet } from '@india-boundary-corrector/leaflet-layer'
 import type { ClubWithDistance } from '../types/club'
 import type { PlaceFocus } from '../lib/places'
 import { haversineKm } from '../lib/haversine'
@@ -13,6 +14,8 @@ import {
   SOUTH_ASIA_ZOOM,
 } from '../lib/mapTiles'
 import { IDLE_MAP_MARKER_CAP, type MapViewState } from '../lib/mapViewTypes'
+
+extendLeaflet(L)
 
 export type { MapViewState } from '../lib/mapViewTypes'
 export { IDLE_MAP_MARKER_CAP } from '../lib/mapViewTypes'
@@ -140,11 +143,15 @@ function MapViewComponent({
 
     L.control.zoom({ position: 'topright' }).addTo(map)
 
-    L.tileLayer(tiles.url, {
-      attribution: tiles.attribution,
-      maxZoom: tiles.maxZoom,
-      subdomains: tiles.subdomains,
-    }).addTo(map)
+    L.tileLayer
+      .indiaBoundaryCorrected(tiles.url, {
+        attribution: tiles.attribution,
+        maxZoom: tiles.maxZoom,
+        subdomains: tiles.subdomains,
+        layerConfig: tiles.layerConfig ?? 'cartodb-light',
+        pmtilesUrl: '/data/india_boundary_corrections.pmtiles',
+      })
+      .addTo(map)
 
     const cluster = L.markerClusterGroup({
       showCoverageOnHover: false,

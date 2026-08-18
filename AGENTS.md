@@ -15,7 +15,7 @@ Standalone **public Club Finder** for Rotaract clubs across South Asia, by **Rot
 | Hosting | Netlify (SPA + Functions) |
 | Stack | Vite + React 19 + TypeScript, Leaflet + markercluster (lazy-loaded), Fuse.js |
 | Data | Static `public/data/clubs.json` built from `data/clubs.csv` |
-| Map tiles | Free OSM/CARTO (Leaflet) — no Mapbox tile billing |
+| Map tiles | Free OSM/CARTO (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant) — no Mapbox tile billing |
 | Place search | Mapbox Temporary Geocoding via Netlify `/api/geocode` only |
 | Fonts | Self-hosted Open Sans + Sentinel (`public/fonts`, woff2 + TTF fallback) |
 
@@ -78,7 +78,7 @@ Netlify
 5. Tiny expansions only (e.g. `KGF` → Kolar Gold Fields); no localities gazetteer.
 6. Keep a tiny `CITY_ALIASES` map only (e.g. Bangalore → Bengaluru).
 7. Mapbox results are **temporary / session-only** (never write geocode coords into `clubs.json`).
-8. **Tiles are always free OSM/CARTO** (Leaflet). Mapbox is geocode-only.
+8. **Tiles are free OSM/CARTO** (Leaflet) with `@india-boundary-corrector/leaflet-layer` for Survey of India boundary accuracy. Mapbox is geocode-only.
 9. Brand UI: RSAMDIO cranberry `#D41B69` (not teal). Logo in header (`/brand/rsamdio.webp`); fonts match rsamdio.org: **Open Sans** + **Sentinel** (self-hosted woff2 + TTF in `public/fonts`).
 10. User-facing copy: no Mapbox / token / stack jargon; speak only in visitor terms (search, map, near you).
 11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
