@@ -84,7 +84,7 @@ Netlify
 11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).
 13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan. After a successful locate, keep a quiet standing **me** marker for the tab session (survives pan/zoom/place search). **Recenter** (bottom-right map control) only pans to that me point; it must not create a Near Me search session or change the club list.
-14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the geo-sorted marker set (cap 300 centered on viewport or destination club). `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
+14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the full clustered marker set. `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
 
 ### Club types (RI)
 
@@ -109,7 +109,7 @@ Country, state, city, **district**, zone, **club type**. No status field or filt
 
 ### Scale
 
-~450 dummy clubs now; expect ~5k. Stay on static JSON + client Fuse + markercluster. Idle map marker hard-cap **300**. Browse/place nearest lists **~15**. No self-hosted place DB.
+~450 dummy clubs now; expect ~5k. Stay on static JSON + client Fuse + markercluster. All clubs clustered natively by Leaflet markercluster. Browse/place nearest lists **~15**. No self-hosted place DB.
 
 ## Data workflow
 

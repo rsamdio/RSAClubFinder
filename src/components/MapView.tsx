@@ -13,12 +13,11 @@ import {
   SOUTH_ASIA_CENTER,
   SOUTH_ASIA_ZOOM,
 } from '../lib/mapTiles'
-import { IDLE_MAP_MARKER_CAP, type MapViewState } from '../lib/mapViewTypes'
+import { type MapViewState } from '../lib/mapViewTypes'
 
 extendLeaflet(L)
 
 export type { MapViewState } from '../lib/mapViewTypes'
-export { IDLE_MAP_MARKER_CAP } from '../lib/mapViewTypes'
 
 const DEFAULT_ICON = L.divIcon({
   className: 'club-marker',
@@ -81,8 +80,6 @@ interface MapViewProps {
    * Must stay false during map browse so list updates never steal zoom/pan.
    */
   autoFitResults?: boolean
-  /** Cap markers on idle / wide views (default 300). */
-  markerCap?: number | null
 }
 
 function MapViewComponent({
@@ -98,7 +95,6 @@ function MapViewComponent({
   onViewChange,
   trackView = false,
   autoFitResults = false,
-  markerCap = IDLE_MAP_MARKER_CAP,
 }: MapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
@@ -227,58 +223,7 @@ function MapViewComponent({
     }
   }, [trackView])
 
-  const displayClubs = (() => {
-    let list: ClubWithDistance[]
-
-    if (markerCap != null && clubs.length > markerCap) {
-      const validCoords = clubs.filter(
-        (c) => c.latitude != null && c.longitude != null,
-      )
-      // Geo-sort toward the destination center before capping. If a club is selected,
-      // use its coordinates so the markers that survive the slice are centered around
-      // where the user is going. Otherwise use the current map center.
-      const centerLat = focusClub?.latitude ?? mapRef.current?.getCenter()?.lat
-      const centerLng = focusClub?.longitude ?? mapRef.current?.getCenter()?.lng
-      
-      if (centerLat != null && centerLng != null) {
-        validCoords.sort(
-          (a, b) =>
-            haversineKm(
-              centerLat,
-              centerLng,
-              a.latitude as number,
-              a.longitude as number,
-            ) -
-            haversineKm(
-              centerLat,
-              centerLng,
-              b.latitude as number,
-              b.longitude as number,
-            ),
-        )
-      }
-      list = validCoords.slice(0, markerCap)
-    } else {
-      list = clubs
-    }
-
-    // Keep the open club visible even if it falls outside an idle marker cap.
-    if (selectedClubId || focusClub) {
-      const keep =
-        focusClub ??
-        clubs.find((c) => c.club_id === selectedClubId) ??
-        null
-      if (
-        keep &&
-        keep.latitude != null &&
-        keep.longitude != null &&
-        !list.some((c) => c.club_id === keep.club_id)
-      ) {
-        list = [...list, keep]
-      }
-    }
-    return list
-  })()
+  const displayClubs = clubs
 
   // Markers: rebuild only when membership changes (order-independent key avoids sort flicker).
   const markersKey = displayClubs

@@ -27,7 +27,7 @@ import {
 import { MAP_BROWSE_MIN_ZOOM } from '../lib/mapTiles'
 import { haversineKm } from '../lib/haversine'
 import { findClubById, normalizeClubIdParam } from '../lib/clubId'
-import { IDLE_MAP_MARKER_CAP, type MapViewState } from '../lib/mapViewTypes'
+import { type MapViewState } from '../lib/mapViewTypes'
 import { HOME_TITLE, NOT_FOUND_TITLE, clubPageTitle } from '../lib/seoMeta'
 import { useClubs } from '../hooks/useClubs'
 import { useIsDesktop } from '../hooks/useMediaQuery'
@@ -581,18 +581,12 @@ export function FinderApp() {
 
   const clubMissing = Boolean(clubId) && !loading && !selectedClub
 
-  // Place / Near Me / club-name search drive the map set. Browse is list-only (idle markers).
-  // Always cap — even for autoFitResults. The autoFit effect already skips when >40 clubs, so
-  // the uncapped path was only reachable for large fuzzy matches and caused unnecessary marker churn.
-  const mapMarkerCap = placeFocus ? null : IDLE_MAP_MARKER_CAP
-
   const mapClubs = useMemo(() => {
     let base = results
 
-    // Map pan browse: list shows ~15 nearest; map keeps the full filtered set (idle cap).
+    // Map pan browse: list shows ~15 nearest; map keeps the full filtered set.
     // This MUST apply whether or not a club is open — selecting a club should NOT
-    // change the visible marker set. The geo-sorted idle cap in MapView ensures
-    // only the nearest ~300 markers render, so this is safe even at 5 000 clubs.
+    // change the visible marker set. MarkerCluster natively clusters markers efficiently across all regions.
     if (mapBrowseFocus && !placeFocus) {
       base = filterClubs(clubs, null, { ...activeFilters, q: '' }, {})
     } else if (
@@ -769,7 +763,6 @@ export function FinderApp() {
             radiusKm={placeFocus && placeMode ? activeRadius : null}
             trackView={(!placeFocus || placeFocus.source === 'user') && !clubId}
             autoFitResults={autoFitResults}
-            markerCap={mapMarkerCap}
             onViewChange={handleMapViewChange}
           />
         </Suspense>
