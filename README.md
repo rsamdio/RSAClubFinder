@@ -14,7 +14,7 @@ Public, map-based discovery of Rotaract clubs across South Asia.
 - Fuse.js (client-side search)
 - Static `clubs.json` dataset (built from CSV at build time)
 - Netlify hosting (SPA + `/api/geocode` + prerendered club pages + hidden SEO docs)
-- Free OSM/CARTO map tiles (Leaflet)
+- Free OSM/CARTO map tiles (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant)
 - **Mapbox** Temporary Geocoding only (area → lat/lng on Enter)
 
 No login. No database. Club search, filters, Near Me, and map interactions run in the browser. Place/area search goes through Mapbox (via Netlify) on commit only. Map pan/zoom does not bill Mapbox.
@@ -47,7 +47,7 @@ For production-like functions locally: `npx netlify dev` (optional; Vite already
 
 ## Mapbox setup (geocode only)
 
-Tiles are **free OSM/CARTO** — no Mapbox tile token.
+Tiles are **free OSM/CARTO** with Survey of India boundary correction — no Mapbox tile token.
 
 1. Create a free account at [mapbox.com](https://account.mapbox.com/).
 2. Create a public access token (`pk.…`) with **Geocoding** enabled.
@@ -110,7 +110,7 @@ Legacy `club_type=institution` is mapped to `university`.
 
 ## Features
 
-- Interactive South Asia map with clustering (OSM/CARTO tiles); idle marker cap 300
+- Interactive South Asia map with native marker clustering (free OSM/CARTO tiles with Survey of India boundary compliance)
 - Search on **Enter / Search**: club name, city (from dataset), or area (Mapbox)
 - Pan the map (zoomed in) to browse nearest clubs (~15)
 - Filters: country, state, city, district, zone, club type (searchable selects; active clubs only, no status field)
