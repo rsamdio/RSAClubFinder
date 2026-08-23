@@ -11,6 +11,8 @@ export const ORG_SHORT = 'RSAMDIO'
 export const PRODUCT_NAME = 'Club Finder'
 export const OG_SITE_NAME = 'Club Finder | Rotaract South Asia MDIO'
 export const AFFILIATION = 'Club Finder by Rotaract South Asia MDIO (RSAMDIO)'
+export const TWITTER_HANDLE = '@rsa_mdio'
+export const TWITTER_URL = 'https://x.com/rsa_mdio'
 
 export const OG_IMAGE_PATH = '/og-club-finder.webp'
 export const OG_IMAGE_URL = `${SITE_ORIGIN}${OG_IMAGE_PATH}`
@@ -149,6 +151,7 @@ export function clubPageJsonLdGraph(club) {
         name: ORG_NAME,
         alternateName: ORG_SHORT,
         url: 'https://rsamdio.org/',
+        sameAs: ['https://rsamdio.org/', TWITTER_URL],
       },
       {
         '@type': 'WebSite',

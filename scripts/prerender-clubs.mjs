@@ -22,6 +22,7 @@ import {
   OG_IMAGE_ALT,
   NOT_FOUND_TITLE,
   NOT_FOUND_DESCRIPTION,
+  TWITTER_HANDLE,
   clubPageTitle,
   clubPageDescription,
   clubPageUrl,
@@ -91,6 +92,16 @@ function replaceMeta(html, { title, description, url, jsonLd, noindex = false })
     out,
     /<meta\s+property="og:image:alt"\s+content="[^"]*"\s*\/?>/i,
     `<meta property="og:image:alt" content="${escapeHtml(OG_IMAGE_ALT)}" />`,
+  )
+  out = replaceOrInsert(
+    out,
+    /<meta\s+name="twitter:site"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:site" content="${escapeHtml(TWITTER_HANDLE)}" />`,
+  )
+  out = replaceOrInsert(
+    out,
+    /<meta\s+name="twitter:creator"\s+content="[^"]*"\s*\/?>/i,
+    `<meta name="twitter:creator" content="${escapeHtml(TWITTER_HANDLE)}" />`,
   )
   out = out.replace(
     /<meta\s+name="twitter:title"\s+content="[^"]*"\s*\/?>/i,
