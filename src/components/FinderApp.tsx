@@ -50,7 +50,7 @@ function writeQueryToUrl(filters: ClubFilters) {
   const params = searchParamsFromFilters(filters)
   const qs = params.toString()
   const path = `${window.location.pathname}${qs ? `?${qs}` : ''}`
-  // Avoid React Router setSearchParams — it re-renders the whole tree and flickers the input.
+  // Avoid React Router setSearchParams. It re-renders the whole tree and flickers the input.
   window.history.replaceState(window.history.state, '', path)
 }
 
@@ -405,7 +405,7 @@ export function FinderApp() {
   }, [mapView, placeFocus])
 
   const results = useMemo(() => {
-    // Place lookup failed: show empty list — do not dump fuzzy Kolkata/Karachi clubs
+    // Place lookup failed: show empty list. Do not dump fuzzy Kolkata/Karachi clubs
     if (placeMiss && !placeFocus) {
       return []
     }
@@ -585,7 +585,7 @@ export function FinderApp() {
     let base = results
 
     // Map pan browse: list shows ~15 nearest; map keeps the full filtered set.
-    // This MUST apply whether or not a club is open — selecting a club should NOT
+    // This MUST apply whether or not a club is open: selecting a club should NOT
     // change the visible marker set. MarkerCluster natively clusters markers efficiently across all regions.
     if (mapBrowseFocus && !placeFocus) {
       base = filterClubs(clubs, null, { ...activeFilters, q: '' }, {})

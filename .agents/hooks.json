@@ -1,0 +1,27 @@
+{
+  "em-dash-guard": {
+    "enabled": true,
+    "PostToolUse": [
+      {
+        "matcher": "write_to_file|replace_file_content|multi_replace_file_content",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/lint-em-dashes.mjs",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "index-maintenance-reminder": {
+    "enabled": true,
+    "PreInvocation": [
+      {
+        "type": "command",
+        "command": "echo '{\"injectSteps\":[{\"ephemeralMessage\":\"Reminder: Ensure .agents/INDEX.md stays updated with any code changes and zero em dashes are introduced.\"}]}'",
+        "timeout": 5
+      }
+    ]
+  }
+}

@@ -1,6 +1,6 @@
-# AGENTS.md — Club Finder (Rotaract South Asia MDIO)
+# AGENTS.md: Club Finder (Rotaract South Asia MDIO)
 
-Persistent context for AI agents and humans working on this repo. Prefer this file over reconstructed chat history.
+Persistent context for AI agents and humans working on this repo. Prefer this file and `.agents/INDEX.md` over reconstructed chat history.
 
 ## What this project is
 
@@ -15,7 +15,7 @@ Standalone **public Club Finder** for Rotaract clubs across South Asia, by **Rot
 | Hosting | Netlify (SPA + Functions) |
 | Stack | Vite + React 19 + TypeScript, Leaflet + markercluster (lazy-loaded), Fuse.js |
 | Data | Static `public/data/clubs.json` built from `data/clubs.csv` |
-| Map tiles | Free OSM/CARTO (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant) — no Mapbox tile billing |
+| Map tiles | Esri World Street Map (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant): no tile billing |
 | Place search | Mapbox Temporary Geocoding via Netlify `/api/geocode` only |
 | Fonts | Self-hosted Open Sans + Sentinel (`public/fonts`, woff2 + TTF fallback) |
 
@@ -78,10 +78,10 @@ Netlify
 5. Tiny expansions only (e.g. `KGF` → Kolar Gold Fields); no localities gazetteer.
 6. Keep a tiny `CITY_ALIASES` map only (e.g. Bangalore → Bengaluru).
 7. Mapbox results are **temporary / session-only** (never write geocode coords into `clubs.json`).
-8. **Tiles are free OSM/CARTO** (Leaflet) with `@india-boundary-corrector/leaflet-layer` for Survey of India boundary accuracy. Mapbox is geocode-only.
+8. **Tiles are Esri World Street Map (default)** (Leaflet) with `@india-boundary-corrector/leaflet-layer` for Survey of India boundary accuracy. Mapbox is geocode-only.
 9. Brand UI: RSAMDIO cranberry `#D41B69` (not teal). Logo in header (`/brand/rsamdio.webp`); fonts match rsamdio.org: **Open Sans** + **Sentinel** (self-hosted woff2 + TTF in `public/fonts`).
 10. User-facing copy: no Mapbox / token / stack jargon; speak only in visitor terms (search, map, near you).
-11. No em dashes (—) in user-facing copy. Use periods, commas, or parentheses.
+11. No em dashes in user-facing copy, comments, data, or documentation. Use periods, commas, colons, hyphens, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).
 13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan. After a successful locate, keep a quiet standing **me** marker for the tab session (survives pan/zoom/place search). **Recenter** (bottom-right map control) only pans to that me point; it must not create a Near Me search session or change the club list.
 14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the full clustered marker set. `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
@@ -131,11 +131,11 @@ Google Sheets publish pipeline is **out of V1** (optional later admin workflow).
 | --- | --- | --- |
 | `MAPBOX_ACCESS_TOKEN` | Netlify + local `.env` | Server geocode (`/api/geocode`) only |
 
-Never commit `.env`. Template: `.env.example`. No `VITE_MAPBOX_*` tile token — basemap is free OSM/CARTO.
+Never commit `.env`. Template: `.env.example`. No `VITE_MAPBOX_*` tile token: basemap is Esri World Street Map.
 
 **Geocode guards:** q ≤ 120; 30 requests/IP/minute (Blobs); errors `Cache-Control: no-store`. Ops notes: `docs/ops-geocode-alerts.md`.
 
-**Geocode 403 gotchas:** (1) do not pass `poi` in Mapbox v5 `types` together with `bbox`/`country` — POI was removed from v5 and Mapbox returns 403; (2) URL-restricted tokens also 403 on server calls (no Referer). If place search fails with 403, check query params first, then the token.
+**Geocode 403 gotchas:** (1) do not pass `poi` in Mapbox v5 `types` together with `bbox`/`country` (POI was removed from v5 and Mapbox returns 403); (2) URL-restricted tokens also 403 on server calls (no Referer). If place search fails with 403, check query params first, then the token.
 
 In Netlify Functions use `Netlify.env.get(...)`, not `process.env`.
 

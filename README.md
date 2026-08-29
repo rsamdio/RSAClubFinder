@@ -14,7 +14,7 @@ Public, map-based discovery of Rotaract clubs across South Asia.
 - Fuse.js (client-side search)
 - Static `clubs.json` dataset (built from CSV at build time)
 - Netlify hosting (SPA + `/api/geocode` + prerendered club pages + hidden SEO docs)
-- Free OSM/CARTO map tiles (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant)
+- Esri World Street Map tiles (Leaflet) with `@india-boundary-corrector/leaflet-layer` (Survey of India compliant)
 - **Mapbox** Temporary Geocoding only (area → lat/lng on Enter)
 
 No login. No database. Club search, filters, Near Me, and map interactions run in the browser. Place/area search goes through Mapbox (via Netlify) on commit only. Map pan/zoom does not bill Mapbox.
@@ -47,14 +47,14 @@ For production-like functions locally: `npx netlify dev` (optional; Vite already
 
 ## Mapbox setup (geocode only)
 
-Tiles are **free OSM/CARTO** with Survey of India boundary correction — no Mapbox tile token.
+Tiles are **Esri World Street Map** (default) with Survey of India boundary correction (no Mapbox tile token).
 
 1. Create a free account at [mapbox.com](https://account.mapbox.com/).
 2. Create a public access token (`pk.…`) with **Geocoding** enabled.
-3. **Do not turn on URL restrictions** for this token. Geocode calls are made from the server (Vite middleware / Netlify Function) without a browser Referer — restricted tokens return **403** and place search fails.
+3. **Do not turn on URL restrictions** for this token. Geocode calls are made from the server (Vite middleware / Netlify Function) without a browser Referer: restricted tokens return **403** and place search fails.
 4. Set in `.env` / Netlify env: `MAPBOX_ACCESS_TOKEN=pk.…`
 5. Restart `npm run dev` after changing `.env`.
-6. Free tier: **100,000 temporary geocodes/month** — enough for Enter-only search.
+6. Free tier: **100,000 temporary geocodes/month** - enough for Enter-only search.
 
 Do **not** store geocode results in `clubs.json`. Pins are session-only.
 
@@ -68,7 +68,7 @@ Canonical build input: **`data/clubs.csv`**. Netlify `npm run build` runs `data:
 
 | File | Role |
 | --- | --- |
-| `data/sample-clubs.csv` | **Master format reference** — copy this header shape when preparing real data |
+| `data/sample-clubs.csv` | **Master format reference**: copy this header shape when preparing real data |
 | `data/dummy-clubs.csv` | Full dummy set for local testing |
 | `data/clubs.csv` | Canonical Netlify input (replace with your master export) |
 
@@ -94,7 +94,7 @@ Required: `club_id`, `club_name`, `club_type`, `district`, `zone`, `country`, `c
 
 **Removed:** `club_slug`, `university_name`, `campus_type`. Routes use `/club/{club_id}`.
 
-**Forbidden:** phone/mobile columns — never written to JSON.
+**Forbidden:** phone/mobile columns: never written to JSON.
 
 Legacy `club_type=institution` is mapped to `university`.
 
@@ -110,7 +110,7 @@ Legacy `club_type=institution` is mapped to `university`.
 
 ## Features
 
-- Interactive South Asia map with native marker clustering (free OSM/CARTO tiles with Survey of India boundary compliance)
+- Interactive South Asia map with native marker clustering (Esri World Street Map tiles with Survey of India boundary compliance)
 - Search on **Enter / Search**: club name, city (from dataset), or area (Mapbox)
 - Pan the map (zoomed in) to browse nearest clubs (~15)
 - Filters: country, state, city, district, zone, club type (searchable selects; active clubs only, no status field)
@@ -122,6 +122,6 @@ Legacy `club_type=institution` is mapped to `university`.
 
 ## What “Sheets publish pipeline” means
 
-Optional later admin workflow — **not required for soft launch**.
+Optional later admin workflow (not required for soft launch).
 
 Right now: replace `data/clubs.csv` → push → Netlify build emits `clubs.json` and prerendered club pages.

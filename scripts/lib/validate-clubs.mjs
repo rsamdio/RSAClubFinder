@@ -80,7 +80,7 @@ export function validateClubRows(rows) {
     for (const key of Object.keys(rows[0])) {
       if (PHONE_HEADER_RE.test(key)) {
         errors.push(
-          `Forbidden column "${key}" — phone numbers must not appear in public club data`,
+          `Forbidden column "${key}": phone numbers must not appear in public club data`,
         )
       }
     }
@@ -124,7 +124,7 @@ export function validateClubRows(rows) {
     if (lat.error) errors.push(`L${line}: ${lat.error}`)
     if (lng.error) errors.push(`L${line}: ${lng.error}`)
     if ((lat.value == null) !== (lng.value == null)) {
-      warnings.push(`L${line}: only one of latitude/longitude provided — both cleared`)
+      warnings.push(`L${line}: only one of latitude/longitude provided: both cleared`)
     }
 
     const email = empty(row.public_email) ? null : String(row.public_email).trim()

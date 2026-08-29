@@ -9,7 +9,7 @@ import type { ClubWithDistance } from '../types/club'
 import type { PlaceFocus } from '../lib/places'
 import { haversineKm } from '../lib/haversine'
 import {
-  getTileConfig,
+  getAvailableBasemaps,
   SOUTH_ASIA_CENTER,
   SOUTH_ASIA_ZOOM,
 } from '../lib/mapTiles'
@@ -131,7 +131,6 @@ function MapViewComponent({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
-    const tiles = getTileConfig()
     const map = L.map(containerRef.current, {
       zoomControl: false,
       attributionControl: true,
@@ -139,15 +138,34 @@ function MapViewComponent({
 
     L.control.zoom({ position: 'topright' }).addTo(map)
 
-    L.tileLayer
-      .indiaBoundaryCorrected(tiles.url, {
+    const basemaps = getAvailableBasemaps()
+    const baseLayers: Record<string, L.Layer> = {}
+    let isFirst = true
+    const layerObjects: L.TileLayer.IndiaBoundaryCorrected[] = []
+
+    for (const [name, tiles] of Object.entries(basemaps)) {
+      const layer = L.tileLayer.indiaBoundaryCorrected(tiles.url, {
         attribution: tiles.attribution,
         maxZoom: tiles.maxZoom,
-        subdomains: tiles.subdomains,
+        maxNativeZoom: tiles.maxNativeZoom,
+        subdomains: tiles.subdomains ?? 'abc',
         layerConfig: tiles.layerConfig ?? 'cartodb-light',
         pmtilesUrl: '/data/india_boundary_corrections.pmtiles',
+        keepBuffer: 4,
+        updateWhenIdle: true,
       })
-      .addTo(map)
+      baseLayers[name] = layer
+      layerObjects.push(layer)
+
+      if (isFirst) {
+        layer.addTo(map)
+        isFirst = false
+      }
+    }
+
+    if (Object.keys(baseLayers).length > 1) {
+      L.control.layers(baseLayers, undefined, { position: 'bottomright' }).addTo(map)
+    }
 
     const cluster = L.markerClusterGroup({
       showCoverageOnHover: false,
@@ -176,7 +194,29 @@ function MapViewComponent({
       map.invalidateSize({ animate: false })
     })
 
+    // The boundary corrector uses PMTiles which loads metadata asynchronously.
+    // Force a redraw exactly when the metadata finishes loading.
+    let isMounted = true
+    
+    layerObjects.forEach(layer => {
+      if ('getTileFixer' in layer) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const fixer = (layer as any).getTileFixer()
+        if (fixer) {
+          fixer.getSource().getHeader()
+            .then(() => {
+              if (isMounted) layer.redraw()
+            })
+            .catch((err: Error) => {
+              console.warn('Boundary corrector metadata failed to load:', err)
+            })
+        }
+      }
+    })
+
+    const markers = markersById.current
     return () => {
+      isMounted = false
       observer.disconnect()
       map.remove()
       mapRef.current = null
@@ -184,7 +224,7 @@ function MapViewComponent({
       focusLayerRef.current = null
       meLayerRef.current = null
       meMarkerRef.current = null
-      markersById.current.clear()
+      markers.clear()
       // Strict Mode remounts the map with a fresh cluster; without resetting these
       // keys the marker effect thinks the set is unchanged and leaves the map empty
       // until a zoom/browse change rewrites markersKey.
@@ -246,7 +286,7 @@ function MapViewComponent({
         .map((c) => c.club_id),
     )
 
-    // Batch removals then additions — using Leaflet's bulk APIs avoids the
+    // Batch removals then additions: using Leaflet's bulk APIs avoids the
     // partial-redraw flash that occurs when many individual removeLayer/addLayer
     // calls trigger intermediate cluster refreshes.
     const toRemove: L.Marker[] = []

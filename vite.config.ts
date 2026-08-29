@@ -27,6 +27,28 @@ function rewriteSeoStaticRequest(req: Connect.IncomingMessage) {
   if (target) req.url = `${target}${query}`
 }
 
+function pmtilesDevFix(): Plugin {
+  return {
+    name: 'pmtiles-dev-fix',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.endsWith('.pmtiles')) {
+          res.setHeader('Accept-Ranges', 'bytes')
+        }
+        next()
+      })
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url?.endsWith('.pmtiles')) {
+          res.setHeader('Accept-Ranges', 'bytes')
+        }
+        next()
+      })
+    }
+  }
+}
+
 function seoStaticPages(): Plugin {
   return {
     name: 'seo-static-pages',
@@ -193,6 +215,6 @@ function geocodeDevApi(mode: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   return {
-    plugins: [react(), seoStaticPages(), geocodeDevApi(mode)],
+    plugins: [react(), pmtilesDevFix(), seoStaticPages(), geocodeDevApi(mode)],
   }
 })

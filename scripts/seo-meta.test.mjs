@@ -52,7 +52,7 @@ describe('seo-meta', () => {
     })
     expect(desc).toContain('Colombo, Sri Lanka')
     expect(desc).toContain('Club Finder by Rotaract South Asia MDIO (RSAMDIO)')
-    expect(desc).not.toContain('—')
+    expect(desc).not.toContain('\u2014')
   })
 
   it('uses slash-free club URLs', () => {

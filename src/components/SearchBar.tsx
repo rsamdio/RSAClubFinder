@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 
 interface SearchBarProps {
-  /** Initial value from URL / shared link — only applied on mount. */
+  /** Initial value from URL / shared link (only applied on mount). */
   initialValue?: string
-  /** Fires on Enter or Clear — not while typing. */
+  /** Fires on Enter or Clear - not while typing. */
   onCommit: (query: string) => void
   placeholder?: string
 }

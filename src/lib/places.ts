@@ -25,7 +25,7 @@ export interface CityPlace {
   clubCount: number
 }
 
-/** Tiny alias map only — not a locality gazetteer. */
+/** Tiny alias map only - not a locality gazetteer. */
 export const CITY_ALIASES: Record<string, string> = {
   bangalore: 'bengaluru',
   bengaluru: 'bengaluru',
@@ -126,7 +126,7 @@ export function matchCityPlace(
     }
   }
 
-  // Exact/near-exact city only — avoid stealing area queries into city zoom
+  // Exact/near-exact city only. Avoid stealing area queries into city zoom
   if (!best || bestScore < 80) return null
 
   return {
@@ -152,7 +152,7 @@ export function looksLikePlaceQuery(query: string, cities: CityPlace[]): boolean
   ) {
     return true
   }
-  // "ghansoli mumbai" — city word present but query is more than the city alone
+  // "ghansoli mumbai": city word present but query is more than the city alone
   const tail = matchCityInQuery(q, cities)
   const tailCity = tail?.city ?? tail?.label
   if (tail && tailCity && normalizePlaceText(q) !== normalizePlaceText(tailCity)) {

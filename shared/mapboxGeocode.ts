@@ -1,9 +1,9 @@
 /**
  * Shared Mapbox Temporary Geocoding helper (Netlify function + Vite dev middleware).
- * Results are for session map focus only — do not persist into the club dataset.
+ * Results are for session map focus only: do not persist into the club dataset.
  *
- * Do not pass `poi` in `types` — POI was removed from Geocoding v5; combining
- * `poi` with `bbox`/`country` returns HTTP 403 Forbidden.
+ * Do not pass `poi` in `types` (POI was removed from Geocoding v5; combining
+ * `poi` with `bbox`/`country` returns HTTP 403 Forbidden).
  *
  * Prefer a token without URL restrictions (server geocode has no browser Referer).
  */
@@ -33,7 +33,7 @@ export const GEOCODE_Q_MAX = 120
 /** South Asia-ish bbox: minLon,minLat,maxLon,maxLat */
 const SOUTH_ASIA_BBOX = '60,1,98,38'
 
-/** Tiny abbreviation expansions — not a locality gazetteer. */
+/** Tiny abbreviation expansions (not a locality gazetteer). */
 const QUERY_EXPAND: Record<string, string> = {
   kgf: 'Kolar Gold Fields, Karnataka, India',
   'k g f': 'Kolar Gold Fields, Karnataka, India',
@@ -49,7 +49,7 @@ const PLACE_TYPES = [
   'address',
 ].join(',')
 
-/** Exported for tests — keep the map tiny. */
+/** Exported for tests (keep the map tiny). */
 export function expandGeocodeQuery(raw: string): string {
   const key = raw.toLowerCase().replace(/\s+/g, ' ').trim()
   return QUERY_EXPAND[key] ?? raw
