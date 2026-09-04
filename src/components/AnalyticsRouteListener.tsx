@@ -22,11 +22,15 @@ export function AnalyticsRouteListener() {
       return
     }
 
-    window.gtag?.('event', 'page_view', {
-      page_path: `${location.pathname}${location.search}`,
-      page_location: window.location.href,
-      page_title: document.title,
-    })
+    const timer = window.setTimeout(() => {
+      window.gtag?.('event', 'page_view', {
+        page_path: `${location.pathname}${location.search}`,
+        page_location: window.location.href,
+        page_title: document.title,
+      })
+    }, 0)
+
+    return () => window.clearTimeout(timer)
   }, [location.pathname, location.search])
 
   return null

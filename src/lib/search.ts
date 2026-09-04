@@ -77,15 +77,31 @@ function normalizeSearchText(text: string): string {
  * True when the query clearly names a club (substring), not a fuzzy near-miss
  * like "kolar" → Kolkata. Short queries (3–4 chars) require a word-boundary hit.
  */
+const STOP_WORDS = new Set(['club', 'of', 'the'])
+
 export function hasStrongClubMatch(clubs: Club[], query: string): boolean {
   const q = normalizeSearchText(query)
   if (q.length < 3) return false
 
+  const tokens = q
+    .split(/\s+/)
+    .filter((t) => t.length >= 2 && !STOP_WORDS.has(t))
+
   return clubs.some((club) => {
     const name = normalizeSearchText(club.club_name)
-    if (q.length >= 5) return name.includes(q)
+    if (q.length >= 5 && name.includes(q)) return true
+
+    if (tokens.length > 1) {
+      const allTokensMatch = tokens.every((token) => {
+        if (token.length >= 4) return name.includes(token)
+        const re = new RegExp(`(?:^|\\s)${token}(?:\\s|$)`)
+        return re.test(name)
+      })
+      if (allTokensMatch) return true
+    }
+
     // Short tokens: whole-word only (avoids "nit" matching unrelated noise less,
-    // and blocks accidental place→club collisions from tiny substrings).
+    // and blocks accidental place->club collisions from tiny substrings).
     const re = new RegExp(`(?:^|\\s)${q}(?:\\s|$)`)
     return re.test(name)
   })
@@ -105,14 +121,20 @@ export function searchClubs(
   if (tokens.length === 0) return clubs
 
   if (tokens.length > 1) {
+    // Collect fuzzy hits once per token outside the club loop
+    const tokenHitSets = tokens.map((token) => {
+      const hits = new Set<string>()
+      for (const r of fuse.search(token).slice(0, 40)) {
+        hits.add(r.item.club_id)
+      }
+      return hits
+    })
+
     const tokenHits = clubs.filter((club) => {
       const blob = clubSearchBlob(club)
-      return tokens.every((token) => {
+      return tokens.every((token, idx) => {
         if (tokenMatches(blob, token)) return true
-        return fuse
-          .search(token)
-          .slice(0, 40)
-          .some((r) => r.item.club_id === club.club_id)
+        return tokenHitSets[idx].has(club.club_id)
       })
     })
     if (tokenHits.length) return tokenHits
@@ -122,14 +144,19 @@ export function searchClubs(
 }
 
 function applyAttributeFilters(clubs: Club[], filters: ClubFilters): Club[] {
-  let result = clubs
-  if (filters.country) result = result.filter((c) => c.country === filters.country)
-  if (filters.state) result = result.filter((c) => c.state === filters.state)
-  if (filters.city) result = result.filter((c) => c.city === filters.city)
-  if (filters.district) result = result.filter((c) => c.district === filters.district)
-  if (filters.zone) result = result.filter((c) => c.zone === filters.zone)
-  if (filters.type) result = result.filter((c) => c.club_type === filters.type)
-  return result
+  const { country, state, city, district, zone, type } = filters
+  if (!country && !state && !city && !district && !zone && !type) {
+    return clubs
+  }
+  return clubs.filter((c) => {
+    if (country && c.country !== country) return false
+    if (state && c.state !== state) return false
+    if (city && c.city !== city) return false
+    if (district && c.district !== district) return false
+    if (zone && c.zone !== zone) return false
+    if (type && c.club_type !== type) return false
+    return true
+  })
 }
 
 function withDistances(clubs: Club[], origin: GeoPoint): ClubWithDistance[] {

@@ -3,23 +3,55 @@ import Fuse from 'fuse.js'
 import type { Club, ClubsDataset } from '../types/club'
 import { createClubIndex } from '../lib/search'
 
-export function useClubs() {
-  const [clubs, setClubs] = useState<Club[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+let cachedClubs: Club[] | null = null
+let fetchPromise: Promise<Club[]> | null = null
 
-  useEffect(() => {
-    let cancelled = false
-    async function load() {
+async function fetchClubsWithRetry(retries = 1): Promise<Club[]> {
+  if (cachedClubs) return cachedClubs
+  if (fetchPromise) return fetchPromise
+
+  fetchPromise = (async () => {
+    let attempt = 0
+    while (attempt <= retries) {
       try {
         const res = await fetch('/data/clubs.json')
         if (!res.ok) throw new Error('Could not load clubs right now. Please refresh and try again.')
         const data = (await res.json()) as ClubsDataset
+        cachedClubs = data.clubs
+        return data.clubs
+      } catch (err) {
+        attempt++
+        if (attempt > retries) {
+          fetchPromise = null
+          throw err
+        }
+        await new Promise((r) => setTimeout(r, 800))
+      }
+    }
+    fetchPromise = null
+    throw new Error('Could not load clubs right now. Please refresh and try again.')
+  })()
+
+  return fetchPromise
+}
+
+export function useClubs() {
+  const [clubs, setClubs] = useState<Club[]>(() => cachedClubs ?? [])
+  const [loading, setLoading] = useState(() => !cachedClubs)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (cachedClubs) return
+
+    let cancelled = false
+    void fetchClubsWithRetry()
+      .then((data) => {
         if (!cancelled) {
-          setClubs(data.clubs)
+          setClubs(data)
           setLoading(false)
         }
-      } catch (err) {
+      })
+      .catch((err: unknown) => {
         if (!cancelled) {
           setError(
             err instanceof Error
@@ -28,9 +60,8 @@ export function useClubs() {
           )
           setLoading(false)
         }
-      }
-    }
-    void load()
+      })
+
     return () => {
       cancelled = true
     }

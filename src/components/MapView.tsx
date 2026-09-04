@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useMemo, useRef } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet.markercluster'
@@ -112,6 +112,7 @@ function MapViewComponent({
   const onSelectClubRef = useRef(onSelectClub)
   const onViewChangeRef = useRef(onViewChange)
   const flyingRef = useRef(false)
+  const prevSelectedClubIdRef = useRef<string | null>(null)
 
   function beginFlight(ms = 700) {
     flyingRef.current = true
@@ -232,6 +233,7 @@ function MapViewComponent({
       lastFocusKey.current = ''
       lastClubFlyId.current = ''
       lastResultFitKey.current = ''
+      prevSelectedClubIdRef.current = null
     }
   }, [])
 
@@ -265,12 +267,23 @@ function MapViewComponent({
 
   const displayClubs = clubs
 
+  const clubsById = useMemo(() => {
+    const map = new Map<string, ClubWithDistance>()
+    for (const c of displayClubs) map.set(c.club_id, c)
+    return map
+  }, [displayClubs])
+
   // Markers: rebuild only when membership changes (order-independent key avoids sort flicker).
-  const markersKey = displayClubs
-    .map((c) => c.club_id)
-    .slice()
-    .sort()
-    .join('|')
+  const markersKey = useMemo(
+    () =>
+      displayClubs
+        .map((c) => c.club_id)
+        .slice()
+        .sort()
+        .join('|'),
+    [displayClubs],
+  )
+
   useEffect(() => {
     const cluster = clusterRef.current
     const map = mapRef.current
@@ -292,6 +305,7 @@ function MapViewComponent({
     const toRemove: L.Marker[] = []
     for (const [id, marker] of [...markersById.current]) {
       if (nextIds.has(id)) continue
+      marker.off()
       toRemove.push(marker)
       markersById.current.delete(id)
     }
@@ -301,35 +315,13 @@ function MapViewComponent({
     for (const club of displayClubs) {
       if (club.latitude == null || club.longitude == null) continue
       if (markersById.current.has(club.club_id)) continue
+      const selected = Boolean(selectedClubId) && club.club_id === selectedClubId
       const marker = L.marker([club.latitude, club.longitude], {
         title: club.club_name,
-        icon: DEFAULT_ICON,
+        icon: selected ? SELECTED_ICON : DEFAULT_ICON,
+        zIndexOffset: selected ? 1000 : 0,
       })
       marker.bindTooltip(tipForClub(club), {
-        direction: 'top',
-        offset: [0, -28],
-        className: 'club-tooltip',
-      })
-      marker.on('click', () => onSelectClubRef.current(club.club_id))
-      markersById.current.set(club.club_id, marker)
-      toAdd.push(marker)
-    }
-    if (toAdd.length) cluster.addLayers(toAdd)
-    cluster.refreshClusters()
-  }, [displayClubs, markersKey])
-
-  // Keep selected pin highlighted without rebuilding the whole cluster set
-  useEffect(() => {
-    for (const [id, marker] of markersById.current) {
-      const selected = Boolean(selectedClubId) && id === selectedClubId
-      marker.setIcon(selected ? SELECTED_ICON : DEFAULT_ICON)
-      marker.setZIndexOffset(selected ? 1000 : 0)
-      marker.unbindTooltip()
-      const club =
-        displayClubs.find((c) => c.club_id === id) ??
-        (focusClub?.club_id === id ? focusClub : null)
-      const tip = club ? tipForClub(club) : String(marker.options.title || id)
-      marker.bindTooltip(tip, {
         direction: 'top',
         offset: selected ? [0, -34] : [0, -28],
         permanent: selected,
@@ -338,9 +330,60 @@ function MapViewComponent({
           : 'club-tooltip',
       })
       if (selected) marker.openTooltip()
-      else marker.closeTooltip()
+      marker.on('click', () => onSelectClubRef.current(club.club_id))
+      markersById.current.set(club.club_id, marker)
+      toAdd.push(marker)
     }
-  }, [selectedClubId, markersKey, displayClubs, focusClub])
+    if (toAdd.length) cluster.addLayers(toAdd)
+    cluster.refreshClusters()
+  }, [displayClubs, markersKey, selectedClubId])
+
+  // Keep selected pin highlighted without rebuilding the whole cluster set
+  useEffect(() => {
+    const prevId = prevSelectedClubIdRef.current
+    const currId = selectedClubId
+    prevSelectedClubIdRef.current = currId
+
+    if (prevId === currId) return
+
+    // Unhighlight previous marker
+    if (prevId) {
+      const prevMarker = markersById.current.get(prevId)
+      if (prevMarker) {
+        prevMarker.setIcon(DEFAULT_ICON)
+        prevMarker.setZIndexOffset(0)
+        prevMarker.unbindTooltip()
+        const prevClub = clubsById.get(prevId) ?? null
+        const tip = prevClub ? tipForClub(prevClub) : String(prevMarker.options.title || prevId)
+        prevMarker.bindTooltip(tip, {
+          direction: 'top',
+          offset: [0, -28],
+          permanent: false,
+          className: 'club-tooltip',
+        })
+        prevMarker.closeTooltip()
+      }
+    }
+
+    // Highlight new marker
+    if (currId) {
+      const currMarker = markersById.current.get(currId)
+      if (currMarker) {
+        currMarker.setIcon(SELECTED_ICON)
+        currMarker.setZIndexOffset(1000)
+        currMarker.unbindTooltip()
+        const currClub = clubsById.get(currId) ?? (focusClub?.club_id === currId ? focusClub : null)
+        const tip = currClub ? tipForClub(currClub) : String(currMarker.options.title || currId)
+        currMarker.bindTooltip(tip, {
+          direction: 'top',
+          offset: [0, -34],
+          permanent: true,
+          className: 'club-tooltip club-tooltip--selected',
+        })
+        currMarker.openTooltip()
+      }
+    }
+  }, [selectedClubId, focusClub, clubsById])
 
   // Standing "my location" marker (independent of placeFocus session)
   useEffect(() => {

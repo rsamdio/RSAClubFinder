@@ -8,19 +8,30 @@ import {
 const RATE_LIMIT = 30
 const RATE_WINDOW_MS = 60_000
 
+function isOriginAllowed(origin: string, host: string | null): boolean {
+  if (host && (origin === `https://${host}` || origin === `http://${host}`)) return true
+  if (
+    origin === 'https://clubs.rsamdio.org' ||
+    origin === 'https://rsamdio.org' ||
+    origin === 'https://www.rsamdio.org'
+  ) {
+    return true
+  }
+  if (/^https:\/\/[a-z0-9-]+--rsa-club-finder\.netlify\.app$/.test(origin)) {
+    return true
+  }
+  if (origin.includes('localhost') || origin.includes('127.0.0.1')) {
+    return true
+  }
+  return false
+}
+
 function corsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get('Origin')
   const host = req.headers.get('Host')
-  const allowed =
-    origin &&
-    host &&
-    (origin === `https://${host}` ||
-      origin === `http://${host}` ||
-      origin.endsWith('.netlify.app') ||
-      origin.includes('localhost') ||
-      origin.includes('127.0.0.1'))
+  const allowed = origin ? isOriginAllowed(origin, host) : false
   return {
-    'Access-Control-Allow-Origin': allowed ? origin : 'null',
+    'Access-Control-Allow-Origin': allowed && origin ? origin : 'null',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     Vary: 'Origin',
@@ -31,13 +42,14 @@ function json(
   req: Request,
   body: unknown,
   status = 200,
-  cacheControl = 'public, max-age=300',
+  cacheControl = 'public, max-age=3600, s-maxage=86400',
 ): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': cacheControl,
+      'Netlify-CDN-Cache-Control': cacheControl,
       ...corsHeaders(req),
     },
   })

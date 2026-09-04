@@ -86,12 +86,26 @@ export function SearchableSelect({
       return
     }
     updatePosition()
-    function onReposition() {
-      updatePosition()
+    let frameId: number | null = null
+    function onReposition(e: Event) {
+      if (
+        e.type === 'scroll' &&
+        popoverRef.current &&
+        e.target instanceof Node &&
+        popoverRef.current.contains(e.target)
+      ) {
+        return
+      }
+      if (frameId != null) return
+      frameId = window.requestAnimationFrame(() => {
+        frameId = null
+        updatePosition()
+      })
     }
     window.addEventListener('resize', onReposition)
     window.addEventListener('scroll', onReposition, true)
     return () => {
+      if (frameId != null) window.cancelAnimationFrame(frameId)
       window.removeEventListener('resize', onReposition)
       window.removeEventListener('scroll', onReposition, true)
     }

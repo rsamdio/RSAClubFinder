@@ -336,7 +336,7 @@ export function FinderApp() {
       )
       setResolvingPlace(false)
     }
-  }, [committedQuery, cityIndex, clubs, fuse])
+  }, [committedQuery, cityIndex, clubs])
 
   // Browse list chrome vs map nearby context: keep geo-nearest markers while a club is open.
   const browseEligible =
@@ -422,12 +422,24 @@ export function FinderApp() {
         {},
       ).filter((c) => hasStrongClubMatch([c], committedQuery))
     }
-    // Typed query that isn't a strong club / place hit yet → don't fuzzy-list
+    // Multi-token search with exact/token hits (e.g. "Christ Bengaluru")
     if (
       !placeMode &&
       committedQuery.trim().length >= 2 &&
-      !placeFocus
+      fuse
     ) {
+      const qTokens = committedQuery
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter((t) => t.length >= 2)
+      if (qTokens.length > 1) {
+        return filterClubs(clubs, fuse, activeFilters, {
+          origin: activeFocus,
+          radiusKm: null,
+          placeMode: false,
+        })
+      }
       return []
     }
     return filterClubs(clubs, fuse, activeFilters, {

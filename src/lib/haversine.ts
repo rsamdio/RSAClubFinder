@@ -1,4 +1,5 @@
 const EARTH_RADIUS_KM = 6371
+const DEG_TO_RAD = Math.PI / 180
 
 export function haversineKm(
   lat1: number,
@@ -6,12 +7,11 @@ export function haversineKm(
   lat2: number,
   lon2: number,
 ): number {
-  const toRad = (deg: number) => (deg * Math.PI) / 180
-  const dLat = toRad(lat2 - lat1)
-  const dLon = toRad(lon2 - lon1)
+  const dLat = (lat2 - lat1) * DEG_TO_RAD
+  const dLon = (lon2 - lon1) * DEG_TO_RAD
   const a =
     Math.sin(dLat / 2) ** 2 +
-    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2
+    Math.cos(lat1 * DEG_TO_RAD) * Math.cos(lat2 * DEG_TO_RAD) * Math.sin(dLon / 2) ** 2
   return EARTH_RADIUS_KM * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 }
 

@@ -66,7 +66,9 @@ export function buildCityIndex(clubs: Club[]): CityPlace[] {
 
   for (const club of clubs) {
     if (club.latitude == null || club.longitude == null) continue
-    const key = normalizePlaceText(club.city)
+    const cityKey = normalizePlaceText(club.city)
+    const countryKey = normalizePlaceText(club.country)
+    const key = countryKey ? `${cityKey}|${countryKey}` : cityKey
     const bucket = buckets.get(key) ?? {
       city: club.city,
       state: club.state,
@@ -376,12 +378,26 @@ export function clubsNearPointAdaptive(
   const minResults = opts?.minResults ?? 12
   const startKm = opts?.startKm ?? 15
   const maxKm = opts?.maxKm ?? 80
+
+  const mappedClubs = clubs
+    .filter((c) => c.latitude != null && c.longitude != null)
+    .map((c) => ({
+      ...c,
+      distanceKm: haversineKm(
+        point.lat,
+        point.lng,
+        c.latitude as number,
+        c.longitude as number,
+      ),
+    }))
+    .sort((a, b) => a.distanceKm - b.distanceKm)
+
   let radius = startKm
-  let results = clubsNearPoint(clubs, point, radius)
+  let results = mappedClubs.filter((c) => c.distanceKm <= radius)
 
   while (results.length < minResults && radius < maxKm) {
     radius = Math.min(maxKm, radius * 2)
-    results = clubsNearPoint(clubs, point, radius)
+    results = mappedClubs.filter((c) => c.distanceKm <= radius)
   }
 
   return { results, radiusKm: radius }

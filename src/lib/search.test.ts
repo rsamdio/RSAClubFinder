@@ -81,8 +81,9 @@ describe('filterClubs', () => {
   })
 
 
-  it('requires strong club substring match (not fuzzy kolar→Kolkata)', () => {
+  it('requires strong club substring match (not fuzzy kolar->Kolkata)', () => {
     expect(hasStrongClubMatch(clubs, 'Christ')).toBe(true)
+    expect(hasStrongClubMatch(clubs, 'Rotaract Christ')).toBe(true)
     expect(hasStrongClubMatch(clubs, 'kolar')).toBe(false)
     expect(hasStrongClubMatch(clubs, 'KGF')).toBe(false)
   })

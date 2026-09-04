@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import type { Club, ClubFilters, ClubType } from '../types/club'
 import { uniqueSorted } from '../lib/search'
 import { SearchableSelect } from './SearchableSelect'
@@ -23,21 +24,41 @@ export function FilterPanel({
   doneLabel = 'Show results',
   onCopyLink,
 }: FilterPanelProps) {
-  const scoped = clubs.filter((c) => {
-    if (filters.country && c.country !== filters.country) return false
-    if (filters.state && c.state !== filters.state) return false
-    return true
-  })
-
-  const countries = uniqueSorted(clubs.map((c) => c.country))
-  const states = uniqueSorted(
-    clubs
-      .filter((c) => !filters.country || c.country === filters.country)
-      .map((c) => c.state),
+  const scoped = useMemo(
+    () =>
+      clubs.filter((c) => {
+        if (filters.country && c.country !== filters.country) return false
+        if (filters.state && c.state !== filters.state) return false
+        return true
+      }),
+    [clubs, filters.country, filters.state],
   )
-  const cities = uniqueSorted(scoped.map((c) => c.city))
-  const districts = uniqueSorted(scoped.map((c) => c.district))
-  const zones = uniqueSorted(clubs.map((c) => c.zone))
+
+  const countries = useMemo(
+    () => uniqueSorted(clubs.map((c) => c.country)),
+    [clubs],
+  )
+  const states = useMemo(
+    () =>
+      uniqueSorted(
+        clubs
+          .filter((c) => !filters.country || c.country === filters.country)
+          .map((c) => c.state),
+      ),
+    [clubs, filters.country],
+  )
+  const cities = useMemo(
+    () => uniqueSorted(scoped.map((c) => c.city)),
+    [scoped],
+  )
+  const districts = useMemo(
+    () => uniqueSorted(scoped.map((c) => c.district)),
+    [scoped],
+  )
+  const zones = useMemo(
+    () => uniqueSorted(clubs.map((c) => c.zone)),
+    [clubs],
+  )
 
   function set<K extends keyof ClubFilters>(key: K, value: ClubFilters[K]) {
     const next = { ...filters, [key]: value }

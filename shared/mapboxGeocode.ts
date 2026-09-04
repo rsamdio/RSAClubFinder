@@ -97,8 +97,14 @@ export async function forwardGeocodeMapbox(
 
   let res: Response
   try {
+    const timeoutSignal = AbortSignal.timeout(4500)
+    const signal = options?.signal
+      ? typeof AbortSignal.any === 'function'
+        ? AbortSignal.any([options.signal, timeoutSignal])
+        : options.signal
+      : timeoutSignal
     res = await fetch(url.toString(), {
-      signal: options?.signal,
+      signal,
       headers: { Accept: 'application/json' },
     })
   } catch {
