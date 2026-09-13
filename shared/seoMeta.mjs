@@ -84,7 +84,7 @@ export function clubJsonLd(club) {
     addressCountry: club.country || undefined,
   }
   const org = {
-    '@type': 'Organization',
+    '@type': ['Organization', 'NGO'],
     '@id': `${url}#organization`,
     name: club.club_name,
     url,
@@ -99,15 +99,34 @@ export function clubJsonLd(club) {
       ? { '@type': 'City', name: club.city }
       : { '@type': 'Place', name: 'South Asia' },
     isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    knowsAbout: [
+      'Community Service',
+      'Youth Leadership',
+      'Professional Development',
+      'Rotary International',
+    ],
   }
+  if (club.charter_date) org.foundingDate = club.charter_date
   if (club.public_email) org.email = club.public_email
-  if (club.website) org.sameAs = [club.website]
+  if (club.meeting_location) {
+    org.location = {
+      '@type': 'Place',
+      name: club.meeting_location,
+      address,
+    }
+  }
+  const links = []
+  if (club.website) links.push(club.website)
   const socials = [club.instagram, club.facebook, club.linkedin, club.youtube].filter(
     Boolean,
   )
-  if (socials.length) {
-    org.sameAs = [...(org.sameAs ?? []), ...socials]
-  }
+  if (socials.length) links.push(...socials)
+  links.push(
+    'https://en.wikipedia.org/wiki/Rotaract',
+    'https://www.wikidata.org/wiki/Q1055787',
+  )
+  org.sameAs = links
+
   if (club.latitude != null && club.longitude != null) {
     org.geo = {
       '@type': 'GeoCoordinates',
@@ -146,12 +165,17 @@ export function clubPageJsonLdGraph(club) {
     '@context': 'https://schema.org',
     '@graph': [
       {
-        '@type': 'Organization',
+        '@type': ['Organization', 'NGO'],
         '@id': 'https://rsamdio.org/#organization',
         name: ORG_NAME,
         alternateName: ORG_SHORT,
         url: 'https://rsamdio.org/',
-        sameAs: ['https://rsamdio.org/', TWITTER_URL],
+        sameAs: [
+          'https://rsamdio.org/',
+          TWITTER_URL,
+          'https://en.wikipedia.org/wiki/Rotaract',
+          'https://www.wikidata.org/wiki/Q1055787',
+        ],
       },
       {
         '@type': 'WebSite',

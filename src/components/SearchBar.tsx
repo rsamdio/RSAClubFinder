@@ -22,6 +22,10 @@ export function SearchBar({
   const onCommitRef = useRef(onCommit)
 
   useEffect(() => {
+    setText(initialValue)
+  }, [initialValue])
+
+  useEffect(() => {
     onCommitRef.current = onCommit
   }, [onCommit])
 

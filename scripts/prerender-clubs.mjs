@@ -168,6 +168,22 @@ function clubStaticBody(club) {
   else if (club.club_type === 'community') bits.push('Community Based')
   const metaLine = bits.length ? `<p>${bits.join(' · ')}</p>` : ''
 
+  const charterLine = club.charter_date
+    ? `<p><strong>Charter Date:</strong> ${escapeHtml(club.charter_date)}</p>`
+    : ''
+
+  const meetings = []
+  if (club.meeting_day || club.meeting_time) {
+    meetings.push(
+      [club.meeting_day, club.meeting_time].filter(Boolean).join(' at '),
+    )
+  }
+  if (club.meeting_location) meetings.push(club.meeting_location)
+  const meetingBlock =
+    meetings.length > 0
+      ? `<p><strong>Meeting:</strong> ${escapeHtml(meetings.join(' · '))}</p>`
+      : ''
+
   const contacts = []
   if (club.public_email) {
     contacts.push(
@@ -197,17 +213,17 @@ function clubStaticBody(club) {
       : ''
 
   return `
-    <noscript>
       <main class="seo-club">
         <p><a href="/">Club Finder</a> by Rotaract South Asia MDIO</p>
         <h1>${title}</h1>
         ${place ? `<p>${place}</p>` : ''}
         ${metaLine}
+        ${charterLine}
+        ${meetingBlock}
         <p>${desc}</p>
         ${contactBlock}
         <p><a href="/">Open Club Finder</a> to explore the map and search.</p>
-      </main>
-    </noscript>`
+      </main>`
 }
 
 function injectClubMeta(html, club) {
@@ -220,10 +236,19 @@ function injectClubMeta(html, club) {
     url,
     jsonLd: clubPageJsonLdGraph(club),
   })
-  // Visible to non-JS agents; SPA root still mounts for browsers with JS.
+  if (club.latitude != null && club.longitude != null) {
+    const geoTags = `  <meta name="geo.position" content="${club.latitude};${club.longitude}" />\n  <meta name="ICBM" content="${club.latitude}, ${club.longitude}" />`
+    out = replaceOrInsert(
+      out,
+      /<meta\s+name="geo\.position"[^>]*\/?>/i,
+      geoTags,
+    )
+  }
+  // Render static semantic body directly inside #root for instant crawlability and FCP.
+  // React createRoot cleanly mounts over the root content on browser execution.
   out = out.replace(
     /<div id="root"><\/div>/i,
-    `<div id="root"></div>${clubStaticBody(club)}`,
+    `<div id="root">${clubStaticBody(club)}</div>`,
   )
   return out
 }

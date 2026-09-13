@@ -107,6 +107,7 @@ function MapViewComponent({
   const lastMarkersKey = useRef<string>('')
   const lastClubFlyId = useRef<string>('')
   const lastResultFitKey = useRef('')
+  const flightTimerRef = useRef<number | undefined>(undefined)
   const lastRecenterKey = useRef(0)
   const lastPulseKey = useRef(0)
   const onSelectClubRef = useRef(onSelectClub)
@@ -115,9 +116,13 @@ function MapViewComponent({
   const prevSelectedClubIdRef = useRef<string | null>(null)
 
   function beginFlight(ms = 700) {
+    if (flightTimerRef.current != null) {
+      window.clearTimeout(flightTimerRef.current)
+    }
     flyingRef.current = true
-    window.setTimeout(() => {
+    flightTimerRef.current = window.setTimeout(() => {
       flyingRef.current = false
+      flightTimerRef.current = undefined
     }, ms)
   }
 
@@ -142,7 +147,6 @@ function MapViewComponent({
     const basemaps = getAvailableBasemaps()
     const baseLayers: Record<string, L.Layer> = {}
     let isFirst = true
-    const layerObjects: L.TileLayer.IndiaBoundaryCorrected[] = []
 
     for (const [name, tiles] of Object.entries(basemaps)) {
       const layer = L.tileLayer.indiaBoundaryCorrected(tiles.url, {
@@ -152,11 +156,11 @@ function MapViewComponent({
         subdomains: tiles.subdomains ?? 'abc',
         layerConfig: tiles.layerConfig ?? 'cartodb-light',
         pmtilesUrl: '/data/india_boundary_corrections.pmtiles',
-        keepBuffer: 4,
-        updateWhenIdle: true,
+        keepBuffer: 2,
+        updateWhenIdle: false,
+        updateInterval: 100,
       })
       baseLayers[name] = layer
-      layerObjects.push(layer)
 
       if (isFirst) {
         layer.addTo(map)
@@ -195,29 +199,11 @@ function MapViewComponent({
       map.invalidateSize({ animate: false })
     })
 
-    // The boundary corrector uses PMTiles which loads metadata asynchronously.
-    // Force a redraw exactly when the metadata finishes loading.
-    let isMounted = true
-    
-    layerObjects.forEach(layer => {
-      if ('getTileFixer' in layer) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fixer = (layer as any).getTileFixer()
-        if (fixer) {
-          fixer.getSource().getHeader()
-            .then(() => {
-              if (isMounted) layer.redraw()
-            })
-            .catch((err: Error) => {
-              console.warn('Boundary corrector metadata failed to load:', err)
-            })
-        }
-      }
-    })
-
     const markers = markersById.current
     return () => {
-      isMounted = false
+      if (flightTimerRef.current != null) {
+        window.clearTimeout(flightTimerRef.current)
+      }
       observer.disconnect()
       map.remove()
       mapRef.current = null
@@ -524,6 +510,7 @@ function MapViewComponent({
     const marker = markersById.current.get(focusClub.club_id)
     if (marker && clusterRef.current) {
       clusterRef.current.zoomToShowLayer(marker, () => {
+        if (!mapRef.current || lastClubFlyId.current !== focusClub.club_id) return
         marker.setIcon(SELECTED_ICON)
         marker.setZIndexOffset(1000)
         marker.unbindTooltip()

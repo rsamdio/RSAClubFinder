@@ -93,6 +93,7 @@
       crossorigin
     />
     <link rel="preload" href="/data/clubs.json" as="fetch" crossorigin />
+    <link rel="preload" href="/data/india_boundary_corrections.pmtiles" as="fetch" crossorigin />
 
     <!-- Google tag: queue events early; load external script after first paint. -->
     <script>
@@ -137,7 +138,12 @@
             "alternateName": "RSAMDIO",
             "url": "https://rsamdio.org/",
             "logo": "https://clubs.rsamdio.org/brand/rsamdio.webp",
-            "sameAs": ["https://rsamdio.org/", "https://x.com/rsa_mdio"]
+            "sameAs": [
+              "https://rsamdio.org/",
+              "https://x.com/rsa_mdio",
+              "https://en.wikipedia.org/wiki/Rotaract",
+              "https://www.wikidata.org/wiki/Q1055787"
+            ]
           },
           {
             "@type": "WebSite",
@@ -148,7 +154,15 @@
             "description": "Find Rotaract clubs across South Asia by city, district, or near you. Club Finder by Rotaract South Asia MDIO (RSAMDIO).",
             "publisher": { "@id": "https://rsamdio.org/#organization" },
             "inLanguage": "en",
-            "isPartOf": { "@id": "https://rsamdio.org/#organization" }
+            "isPartOf": { "@id": "https://rsamdio.org/#organization" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://clubs.rsamdio.org/?q={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
           },
           {
             "@type": "WebApplication",

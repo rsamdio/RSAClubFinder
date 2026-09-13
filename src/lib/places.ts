@@ -354,19 +354,16 @@ export function clubsNearPoint(
   point: GeoPoint,
   radiusKm: number,
 ): Array<Club & { distanceKm: number }> {
-  return clubs
-    .filter((c) => c.latitude != null && c.longitude != null)
-    .map((c) => ({
-      ...c,
-      distanceKm: haversineKm(
-        point.lat,
-        point.lng,
-        c.latitude as number,
-        c.longitude as number,
-      ),
-    }))
-    .filter((c) => c.distanceKm <= radiusKm)
-    .sort((a, b) => a.distanceKm - b.distanceKm)
+  const matches: Array<Club & { distanceKm: number }> = []
+  for (let i = 0; i < clubs.length; i++) {
+    const c = clubs[i]
+    if (c.latitude == null || c.longitude == null) continue
+    const d = haversineKm(point.lat, point.lng, c.latitude, c.longitude)
+    if (d <= radiusKm) {
+      matches.push({ ...c, distanceKm: d })
+    }
+  }
+  return matches.sort((a, b) => a.distanceKm - b.distanceKm)
 }
 
 /** Expand radius until we have enough clubs or hit the cap. */

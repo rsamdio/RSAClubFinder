@@ -16,6 +16,7 @@ Club Finder helps people discover Rotaract clubs by city, area, club name, distr
 - How to find a club: https://clubs.rsamdio.org/how-to-find/
 - Club pages: https://clubs.rsamdio.org/club/{club_id}
 - Sitemap: https://clubs.rsamdio.org/sitemap.xml
+- Full LLM context: https://clubs.rsamdio.org/llms-full.txt
 
 ## Branding
 

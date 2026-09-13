@@ -205,9 +205,11 @@ a {
   z-index: 1;
 }
 
-.map-view {
+.map-view,
+.leaflet-container {
   width: 100%;
   height: 100%;
+  background-color: #f2eee8;
 }
 
 .finder__banner {

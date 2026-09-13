@@ -113,14 +113,18 @@ export function SearchableSelect({
 
   useEffect(() => {
     if (!open) return
-    function onDoc(e: MouseEvent) {
+    function onDoc(e: MouseEvent | TouchEvent) {
       const t = e.target as Node
       if (rootRef.current?.contains(t) || popoverRef.current?.contains(t)) return
       setOpen(false)
       setQuery('')
     }
     document.addEventListener('mousedown', onDoc)
-    return () => document.removeEventListener('mousedown', onDoc)
+    document.addEventListener('touchstart', onDoc)
+    return () => {
+      document.removeEventListener('mousedown', onDoc)
+      document.removeEventListener('touchstart', onDoc)
+    }
   }, [open])
 
   useEffect(() => {
@@ -129,6 +133,12 @@ export function SearchableSelect({
       window.setTimeout(() => inputRef.current?.focus(), 0)
     }
   }, [open])
+
+  useEffect(() => {
+    if (!open || !popoverRef.current) return
+    const activeEl = popoverRef.current.querySelector<HTMLElement>('.combo__option.is-active')
+    activeEl?.scrollIntoView?.({ block: 'nearest' })
+  }, [highlight, open])
 
   function pick(next: string) {
     onChange(next)

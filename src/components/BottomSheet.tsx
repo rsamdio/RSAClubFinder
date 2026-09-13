@@ -22,6 +22,9 @@ export function BottomSheet({
 
   useEffect(() => {
     document.documentElement.style.setProperty('--sheet-snap', snap)
+    return () => {
+      document.documentElement.style.removeProperty('--sheet-snap')
+    }
   }, [snap])
 
   function onPointerDown(e: PointerEvent<HTMLButtonElement>) {

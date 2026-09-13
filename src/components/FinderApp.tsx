@@ -657,7 +657,7 @@ export function FinderApp() {
         <div className="panel__toolbar">
           <SearchBar
             key={searchEpoch}
-            initialValue={searchEpoch === 0 ? initialFilters.q : ''}
+            initialValue={committedQuery}
             onCommit={handleSearchCommit}
           />
           <button

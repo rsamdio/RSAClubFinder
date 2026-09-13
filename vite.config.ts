@@ -216,5 +216,23 @@ function geocodeDevApi(mode: string): Plugin {
 export default defineConfig(({ mode }) => {
   return {
     plugins: [react(), pmtilesDevFix(), seoStaticPages(), geocodeDevApi(mode)],
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (
+              id.includes('node_modules/react/') ||
+              id.includes('node_modules/react-dom/') ||
+              id.includes('node_modules/react-router-dom/')
+            ) {
+              return 'vendor-react'
+            }
+            if (id.includes('node_modules/fuse.js/')) {
+              return 'vendor-search'
+            }
+          },
+        },
+      },
+    },
   }
 })
