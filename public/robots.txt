@@ -1,10 +1,30 @@
+# Club Finder by Rotaract South Asia MDIO (RSAMDIO)
+# https://clubs.rsamdio.org/
+
 User-agent: *
 Allow: /
 
+# Traditional search
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# AI / answer-engine retrieval bots (keep crawlable for citations)
 User-agent: GPTBot
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
 User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-SearchBot
 Allow: /
 
 User-agent: PerplexityBot
@@ -17,3 +37,7 @@ User-agent: Applebot-Extended
 Allow: /
 
 Sitemap: https://clubs.rsamdio.org/sitemap.xml
+
+# Optional AI reading guides (advisory; not a ranking factor):
+# https://clubs.rsamdio.org/llms.txt
+# https://clubs.rsamdio.org/llms-full.txt

@@ -9,13 +9,64 @@ import type { ClubWithDistance } from '../types/club'
 import type { PlaceFocus } from '../lib/places'
 import { haversineKm } from '../lib/haversine'
 import {
+  ensureIndiaBoundaryLayerConfigs,
+  PMTILES_URL,
+} from '../lib/indiaBoundaryLayerConfigs'
+import {
   getAvailableBasemaps,
   SOUTH_ASIA_CENTER,
   SOUTH_ASIA_ZOOM,
+  type TileConfig,
 } from '../lib/mapTiles'
 import { type MapViewState } from '../lib/mapViewTypes'
 
 extendLeaflet(L)
+
+function createCorrectedBasemap(tiles: TileConfig): L.TileLayer {
+  const layer = L.tileLayer.indiaBoundaryCorrected(tiles.url, {
+    attribution: tiles.attribution,
+    maxZoom: tiles.maxZoom,
+    maxNativeZoom: tiles.maxNativeZoom,
+    subdomains: tiles.subdomains ?? 'abc',
+    layerConfig: tiles.layerConfig,
+    pmtilesUrl: PMTILES_URL,
+    keepBuffer: 2,
+    updateWhenIdle: false,
+    updateInterval: 100,
+  })
+
+  if (import.meta.env.DEV) {
+    layer.on('correctionerror', (event: L.LeafletEvent) => {
+      const detail = event as L.LeafletEvent & {
+        error?: { name?: string; message?: string }
+        tileUrl?: string
+      }
+      // Strict Mode remounts abort in-flight tile fixes; ignore those.
+      if (detail.error?.name === 'AbortError') return
+      console.warn('[india-boundary] tile correction failed', {
+        error: detail.error,
+        tileUrl: detail.tileUrl,
+      })
+    })
+  }
+
+  return layer
+}
+
+function scheduleIdle(task: () => void): number {
+  if (typeof requestIdleCallback === 'function') {
+    return requestIdleCallback(() => task(), { timeout: 2000 }) as unknown as number
+  }
+  return window.setTimeout(task, 1)
+}
+
+function cancelIdle(handle: number): void {
+  if (typeof cancelIdleCallback === 'function') {
+    cancelIdleCallback(handle as unknown as number)
+    return
+  }
+  window.clearTimeout(handle)
+}
 
 export type { MapViewState } from '../lib/mapViewTypes'
 
@@ -137,6 +188,8 @@ function MapViewComponent({
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
+    ensureIndiaBoundaryLayerConfigs()
+
     const map = L.map(containerRef.current, {
       zoomControl: false,
       attributionControl: true,
@@ -145,31 +198,36 @@ function MapViewComponent({
     L.control.zoom({ position: 'topright' }).addTo(map)
 
     const basemaps = getAvailableBasemaps()
-    const baseLayers: Record<string, L.Layer> = {}
-    let isFirst = true
+    const basemapEntries = Object.entries(basemaps)
+    const idleHandles: number[] = []
 
-    for (const [name, tiles] of Object.entries(basemaps)) {
-      const layer = L.tileLayer.indiaBoundaryCorrected(tiles.url, {
-        attribution: tiles.attribution,
-        maxZoom: tiles.maxZoom,
-        maxNativeZoom: tiles.maxNativeZoom,
-        subdomains: tiles.subdomains ?? 'abc',
-        layerConfig: tiles.layerConfig ?? 'cartodb-light',
-        pmtilesUrl: '/data/india_boundary_corrections.pmtiles',
-        keepBuffer: 2,
-        updateWhenIdle: false,
-        updateInterval: 100,
-      })
-      baseLayers[name] = layer
-
-      if (isFirst) {
-        layer.addTo(map)
-        isFirst = false
-      }
+    const [defaultName, defaultTiles] = basemapEntries[0] ?? []
+    if (!defaultName || !defaultTiles) {
+      throw new Error('No basemap configuration available')
     }
 
-    if (Object.keys(baseLayers).length > 1) {
-      L.control.layers(baseLayers, undefined, { position: 'bottomright' }).addTo(map)
+    const defaultLayer = createCorrectedBasemap(defaultTiles)
+    defaultLayer.addTo(map)
+
+    const layersControl =
+      basemapEntries.length > 1
+        ? L.control
+            .layers(
+              { [defaultName]: defaultLayer },
+              undefined,
+              { position: 'bottomright' },
+            )
+            .addTo(map)
+        : null
+
+    // Create non-default corrected basemaps after the map is interactive.
+    for (const [name, tiles] of basemapEntries.slice(1)) {
+      idleHandles.push(
+        scheduleIdle(() => {
+          if (!mapRef.current || !layersControl) return
+          layersControl.addBaseLayer(createCorrectedBasemap(tiles), name)
+        }),
+      )
     }
 
     const cluster = L.markerClusterGroup({
@@ -201,6 +259,7 @@ function MapViewComponent({
 
     const markers = markersById.current
     return () => {
+      for (const handle of idleHandles) cancelIdle(handle)
       if (flightTimerRef.current != null) {
         window.clearTimeout(flightTimerRef.current)
       }

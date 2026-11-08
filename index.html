@@ -93,7 +93,6 @@
       crossorigin
     />
     <link rel="preload" href="/data/clubs.json" as="fetch" crossorigin />
-    <link rel="preload" href="/data/india_boundary_corrections.pmtiles" as="fetch" crossorigin />
 
     <!-- Google tag: queue events early; load external script after first paint. -->
     <script>
@@ -132,7 +131,7 @@
         "@context": "https://schema.org",
         "@graph": [
           {
-            "@type": "Organization",
+            "@type": ["Organization", "NGO"],
             "@id": "https://rsamdio.org/#organization",
             "name": "Rotaract South Asia MDIO",
             "alternateName": "RSAMDIO",

@@ -25,7 +25,7 @@ When developing, refactoring, or extending RSAClubFinder, strictly adhere to the
 * **Camera Autonomy**: Updates to the filtered list or browse-nearby list must NEVER steal camera control (pan or zoom).
 * **Auto-Fit Restriction**: Fitting map bounds to markers is permitted ONLY for intentional club-name searches (`hasStrongClubMatch`).
 * **One-Shot Near Me**: Geolocation triggers a single fly-to and leaves a standing session marker (`myLocation`). Recenter pans to this marker without resetting search queries.
-* **Survey of India Compliance**: Esri World Street Map tiles must always be wrapped with `@india-boundary-corrector/leaflet-layer` (`extendLeaflet(L)`).
+* **Survey of India Compliance**: Every visible basemap must use `@india-boundary-corrector/leaflet-layer` (`extendLeaflet(L)` + `indiaBoundaryCorrected`) with a **style-matched** `layerConfig`. Esri Street / Light Gray / Dark use registered configs from `src/lib/indiaBoundaryLayerConfigs.ts`. Do not borrow `osm-carto` / `cartodb-*` paint profiles for Esri tiles.
 
 ---
 

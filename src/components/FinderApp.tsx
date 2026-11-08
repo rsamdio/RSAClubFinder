@@ -28,7 +28,13 @@ import { MAP_BROWSE_MIN_ZOOM } from '../lib/mapTiles'
 import { haversineKm } from '../lib/haversine'
 import { findClubById, normalizeClubIdParam } from '../lib/clubId'
 import { type MapViewState } from '../lib/mapViewTypes'
-import { HOME_TITLE, NOT_FOUND_TITLE, clubPageTitle } from '../lib/seoMeta'
+import {
+  HOME_TITLE,
+  NOT_FOUND_TITLE,
+  clubPageTitle,
+  clubPageUrl,
+  clubPath,
+} from '../lib/seoMeta'
 import { useClubs } from '../hooks/useClubs'
 import { useIsDesktop } from '../hooks/useMediaQuery'
 import { useNearMe } from '../hooks/useNearMe'
@@ -115,7 +121,7 @@ export function FinderApp() {
       q: committedQuery,
       nearMe: false,
     }).toString()
-    navigate(`/club/${selectedClub.club_id}${qs ? `?${qs}` : ''}`, {
+    navigate(`${clubPath(selectedClub.club_id)}${qs ? `?${qs}` : ''}`, {
       replace: true,
     })
   }, [selectedClub, clubIdParam, navigate, filters, committedQuery])
@@ -476,7 +482,7 @@ export function FinderApp() {
   const onSelectClub = useCallback(
     (nextId: string) => {
       const qs = searchParamsFromFilters(activeFilters).toString()
-      navigate(`/club/${nextId}${qs ? `?${qs}` : ''}`)
+      navigate(`${clubPath(nextId)}${qs ? `?${qs}` : ''}`)
       // Mobile: club detail opens full; user can drag down to half/peek and pick another club.
       if (!isDesktop) setSheetSnap('full')
     },
@@ -547,7 +553,8 @@ export function FinderApp() {
 
   async function shareClub() {
     if (!selectedClub) return
-    const url = `${window.location.origin}/club/${selectedClub.club_id}`
+    // Canonical club URL only (trailing slash, no filter query).
+    const url = clubPageUrl(selectedClub.club_id)
     try {
       if (navigator.share) {
         await navigator.share({
@@ -609,7 +616,7 @@ export function FinderApp() {
       selectedInResults.latitude != null &&
       selectedInResults.longitude != null
     ) {
-      // Cold /club/{id} with no browse context: ~15 neighbors around the club.
+      // Cold /club/{id}/ with no browse context: ~15 neighbors around the club.
       base = clubsNearPoint(
         clubs,
         {
