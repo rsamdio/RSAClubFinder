@@ -27,25 +27,39 @@ function rewriteSeoStaticRequest(req: Connect.IncomingMessage) {
   if (target) req.url = `${target}${query}`
 }
 
+function isPmtilesRequest(url: string | undefined): boolean {
+  if (!url) return false
+  const path = url.split('?')[0] ?? url
+  return path.endsWith('.pmtiles')
+}
+
+/**
+ * PMTiles needs HTTP byte serving. Also avoid full-file browser cache entries:
+ * a cached 200 for the whole archive makes later Range requests fail in pmtiles.
+ */
 function pmtilesDevFix(): Plugin {
   return {
     name: 'pmtiles-dev-fix',
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.endsWith('.pmtiles')) {
+        if (isPmtilesRequest(req.url)) {
           res.setHeader('Accept-Ranges', 'bytes')
+          res.setHeader('Content-Type', 'application/octet-stream')
+          res.setHeader('Cache-Control', 'no-cache')
         }
         next()
       })
     },
     configurePreviewServer(server) {
       server.middlewares.use((req, res, next) => {
-        if (req.url?.endsWith('.pmtiles')) {
+        if (isPmtilesRequest(req.url)) {
           res.setHeader('Accept-Ranges', 'bytes')
+          res.setHeader('Content-Type', 'application/octet-stream')
+          res.setHeader('Cache-Control', 'no-cache')
         }
         next()
       })
-    }
+    },
   }
 }
 

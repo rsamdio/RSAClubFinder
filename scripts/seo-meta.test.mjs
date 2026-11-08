@@ -11,6 +11,7 @@ import {
   clubPageJsonLdGraph,
   clubPageTitle,
   clubPageUrl,
+  clubPath,
   hubTitle,
 } from '../shared/seoMeta.mjs'
 
@@ -55,10 +56,13 @@ describe('seo-meta', () => {
     expect(desc).not.toContain('\u2014')
   })
 
-  it('uses slash-free club URLs', () => {
+  it('uses trailing-slash club paths and absolute URLs', () => {
+    expect(clubPath('100001')).toBe('/club/100001/')
+    expect(clubPath('RCLegacy')).toBe('/club/RCLegacy/')
     expect(clubPageUrl('100001')).toBe(
-      'https://clubs.rsamdio.org/club/100001',
+      'https://clubs.rsamdio.org/club/100001/',
     )
+    expect(clubPath('100001')).not.toMatch(/\/\//)
   })
 
   it('points OG image at webp asset', () => {
@@ -70,12 +74,33 @@ describe('seo-meta', () => {
       club_id: '100001',
       club_name: 'Rotaract Club of NIT Bengaluru',
       city: 'Bengaluru',
+      last_updated: '2026-08-11',
     })
     const org = graph['@graph'].find(
       (item) => item['@id'] === 'https://rsamdio.org/#organization',
     )
     expect(org).toBeDefined()
     expect(org.sameAs).toContain('https://x.com/rsa_mdio')
+  })
+
+  it('includes WebPage with mainEntity, speakable, and dateModified', () => {
+    const graph = clubPageJsonLdGraph({
+      club_id: '100001',
+      club_name: 'Rotaract Club of NIT Bengaluru',
+      city: 'Bengaluru',
+      last_updated: '2026-08-11',
+    })
+    const page = graph['@graph'].find(
+      (item) => item['@id'] === 'https://clubs.rsamdio.org/club/100001/#webpage',
+    )
+    expect(page).toBeDefined()
+    expect(page['@type']).toBe('WebPage')
+    expect(page.url).toBe('https://clubs.rsamdio.org/club/100001/')
+    expect(page.mainEntity).toEqual({
+      '@id': 'https://clubs.rsamdio.org/club/100001/#organization',
+    })
+    expect(page.dateModified).toBe('2026-08-11')
+    expect(page.speakable?.['@type']).toBe('SpeakableSpecification')
   })
 
   it('ensures static HTML entrypoints contain twitter:site and twitter:creator', () => {

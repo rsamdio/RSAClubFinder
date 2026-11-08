@@ -18,5 +18,5 @@
 
 ## 3. SEO & Geo Metadata
 * **Title Suffix**: All page titles must end with `| Rotaract South Asia MDIO`.
-* **Canonical Routes**: Club routes use `/club/{club_id}` without trailing slashes.
+* **Canonical Routes**: Club routes use `/club/{club_id}/` with a trailing slash (Netlify Pretty URLs + folder prerender).
 * **Static SEO Hubs**: Static pages under `/about/` and `/how-to-find/` must remain static HTML files and not be redirected to the SPA bundle.

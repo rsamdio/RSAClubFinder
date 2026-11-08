@@ -47,7 +47,7 @@ For production-like functions locally: `npx netlify dev` (optional; Vite already
 
 ## Mapbox setup (geocode only)
 
-Tiles are **Esri World Street Map** (default) with Survey of India boundary correction (no Mapbox tile token).
+Tiles are **Esri World Street Map** (default), plus Light Gray and Dark, each with Survey of India boundary correction via Esri-tuned layer configs (no Mapbox tile token).
 
 1. Create a free account at [mapbox.com](https://account.mapbox.com/).
 2. Create a public access token (`pk.…`) with **Geocoding** enabled.
@@ -92,7 +92,7 @@ Required: `club_id`, `club_name`, `club_type`, `district`, `zone`, `country`, `c
 | `public_email`, `website`, `instagram`, `facebook`, `linkedin`, `youtube` | Optional public contacts |
 | `latitude`, `longitude` | Optional; clubs without coords still appear in search/list |
 
-**Removed:** `club_slug`, `university_name`, `campus_type`. Routes use `/club/{club_id}`.
+**Removed:** `club_slug`, `university_name`, `campus_type`. Routes use `/club/{club_id}/` (trailing slash).
 
 **Forbidden:** phone/mobile columns: never written to JSON.
 
@@ -114,7 +114,7 @@ Legacy `club_type=institution` is mapped to `university`.
 - Search on **Enter / Search**: club name, city (from dataset), or area (Mapbox)
 - Pan the map (zoomed in) to browse nearest clubs (~15)
 - Filters: country, state, city, district, zone, club type (searchable selects; active clubs only, no status field)
-- Shareable query URLs; club share links use `/club/{club_id}`
+- Shareable query URLs; club share links use `/club/{club_id}/`
 - Club detail: visible email, icon social links, Contact CTA
 - Near Me (one-shot geolocation)
 - Mobile-first bottom sheet UX

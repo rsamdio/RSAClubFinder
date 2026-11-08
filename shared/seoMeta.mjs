@@ -1,8 +1,9 @@
 /**
- * Locked SEO / GEO title and description helpers for Club Finder.
+ * Locked SEO / GEO / AEO title, description, and JSON-LD helpers for Club Finder.
  * Suffix is always: | Rotaract South Asia MDIO
  *
  * Shared by prerender (Node) and the SPA (document.title).
+ * Checklist: docs/seo-geo-aeo-checklist.md
  */
 
 export const SITE_ORIGIN = 'https://clubs.rsamdio.org'
@@ -70,9 +71,17 @@ export function clubPageDescription(club) {
   return parts.join(' ')
 }
 
-/** Canonical club URL without trailing slash (matches SPA navigate). */
+/**
+ * Club path with trailing slash (Netlify Pretty URLs + folder prerender).
+ * Slashless full loads 301 to this form in production.
+ */
+export function clubPath(clubId) {
+  return `/club/${encodeURIComponent(clubId)}/`
+}
+
+/** Absolute canonical club URL (trailing slash). */
 export function clubPageUrl(clubId) {
-  return `${SITE_ORIGIN}/club/${encodeURIComponent(clubId)}`
+  return `${SITE_ORIGIN}${clubPath(clubId)}`
 }
 
 export function clubJsonLd(club) {
@@ -159,6 +168,29 @@ export function clubBreadcrumbJsonLd(club) {
   }
 }
 
+export function clubWebPageJsonLd(club) {
+  const url = clubPageUrl(club.club_id)
+  const page = {
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    name: clubPageTitle(club),
+    description: clubPageDescription(club),
+    isPartOf: { '@id': `${SITE_ORIGIN}/#website` },
+    about: { '@id': `${url}#organization` },
+    mainEntity: { '@id': `${url}#organization` },
+    publisher: { '@id': 'https://rsamdio.org/#organization' },
+    inLanguage: 'en',
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: ['h1', '.seo-club p'],
+    },
+  }
+  const modified = sitemapLastmod(club)
+  if (modified) page.dateModified = modified
+  return page
+}
+
 /** Full JSON-LD graph for a prerendered club page (replaces homepage graph). */
 export function clubPageJsonLdGraph(club) {
   return {
@@ -185,6 +217,7 @@ export function clubPageJsonLdGraph(club) {
         publisher: { '@id': 'https://rsamdio.org/#organization' },
         inLanguage: 'en',
       },
+      clubWebPageJsonLd(club),
       clubJsonLd(club),
       clubBreadcrumbJsonLd(club),
     ],

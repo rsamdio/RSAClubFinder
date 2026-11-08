@@ -21,17 +21,18 @@ Standalone **public Club Finder** for Rotaract clubs across South Asia, by **Rot
 
 No login. No app database. Clubs live in static JSON; Mapbox only supplies a session map pin for area search.
 
-### SEO / GEO naming (do not regress)
+### SEO / GEO / AEO naming (do not regress)
 
 - Title suffix always ends with `| Rotaract South Asia MDIO`
 - Homepage title: `Club Finder - Find Rotaract Clubs Across South Asia | Rotaract South Asia MDIO`
 - Club title: `{Club name} · {City} | Club Finder | Rotaract South Asia MDIO`
-- Club canonical / sitemap: `/club/{club_id}` (no trailing slash; matches SPA routes)
+- Club canonical / sitemap / OG / JSON-LD: `/club/{club_id}/` (trailing slash; matches Netlify Pretty URLs + folder prerender). Slashless `/club/{club_id}` full loads 301 to the slashed form.
 - `og:site_name`: `Club Finder | Rotaract South Asia MDIO`
 - OG image: `/og-club-finder.webp` (1200×630)
 - Prefer product phrasing **Club Finder** / **Club Finder by Rotaract South Asia MDIO (RSAMDIO)**. Do not use “RSAMDIO Club Finder” as the primary product title (legacy alternateName in schema only).
 - Hidden crawl pages (no finder UI links): `/about/`, `/how-to-find/`, plus `llms.txt`. Meta helpers: `shared/seoMeta.mjs`.
-- Helpers and prerender: `scripts/prerender-clubs.mjs`
+- Club JSON-LD includes WebPage (speakable + dateModified) + Organization/NGO + BreadcrumbList. `robots.txt` allows major search and AI retrieval bots.
+- Checklist: `docs/seo-geo-aeo-checklist.md`. Helpers and prerender: `scripts/prerender-clubs.mjs`
 
 ## Commands
 
@@ -78,13 +79,13 @@ Netlify
 5. Tiny expansions only (e.g. `KGF` → Kolar Gold Fields); no localities gazetteer.
 6. Keep a tiny `CITY_ALIASES` map only (e.g. Bangalore → Bengaluru).
 7. Mapbox results are **temporary / session-only** (never write geocode coords into `clubs.json`).
-8. **Tiles are Esri World Street Map (default)** (Leaflet) with `@india-boundary-corrector/leaflet-layer` for Survey of India boundary accuracy. Mapbox is geocode-only.
+8. **Tiles are Esri World Street Map (default)** (Leaflet) with `@india-boundary-corrector/leaflet-layer` for Survey of India boundary accuracy. Use Esri-tuned `layerConfig` ids from `src/lib/indiaBoundaryLayerConfigs.ts` (never borrow `osm-carto` / `cartodb-*` for Esri). Switcher: Street, Light Gray, Dark only. Do **not** `<link rel="preload">` the PMTiles archive (full-file cache breaks HTTP Range reads). Mapbox is geocode-only. QA: `docs/india-boundary-qa.md`.
 9. Brand UI: RSAMDIO cranberry `#D41B69` (not teal). Logo in header (`/brand/rsamdio.webp`); fonts match rsamdio.org: **Open Sans** + **Sentinel** (self-hosted woff2 + TTF in `public/fonts`).
 10. User-facing copy: no Mapbox / token / stack jargon; speak only in visitor terms (search, map, near you).
 11. No em dashes in user-facing copy, comments, data, or documentation. Use periods, commas, colons, hyphens, or parentheses.
 12. **Camera ownership:** never move zoom/center because the browse/nearby *list* updated. Auto-fit markers only for intentional club-name search. Place/locate/club-select may fly once (club fly may keep the place pin).
 13. **Near Me is one-shot** (Maps-style locate): GPS → fly once → show nearby. Not a sticky “On” mode, not in the URL, must not block later search/pan. After a successful locate, keep a quiet standing **me** marker for the tab session (survives pan/zoom/place search). **Recenter** (bottom-right map control) only pans to that me point; it must not create a Near Me search session or change the club list.
-14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the full clustered marker set. `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
+14. **Open club keeps nearby markers:** selecting a club must not replace place/Near Me nearby pins with the idle A–Z marker cap. True cold deep-links `/club/{id}/` (`!mapView`) show ~15 neighbors around that club. Map pan browse is **list-only**: the list shows ~15 nearest while the map keeps the full clustered marker set. `MapView` uses bulk cluster operations (`addLayers`/`removeLayers`) to eliminate redraw flicker. `trackView` stays off while a club is open (frozen browse center; no list thrash).
 
 ### Club types (RI)
 
@@ -95,7 +96,7 @@ Netlify
 ### Club naming & routes
 
 - CSV `club_name` is **short** (e.g. `NIT Bengaluru`). Build prefixes **`Rotaract Club of `** into JSON (skip if already prefixed).
-- Routes use **`/club/{club_id}`** (official RI id). No `club_slug`.
+- Routes use **`/club/{club_id}/`** (official RI id, trailing slash). No `club_slug`.
 - CSV `zone` is a **digit**; JSON/UI show **`Zone N`**.
 
 ### Contacts (public JSON)
@@ -150,7 +151,7 @@ In Netlify Functions use `Netlify.env.get(...)`, not `process.env`.
 | Club detail (icons + email) | `src/components/ClubDetail.tsx` |
 | Place / city / geocode client | `src/lib/places.ts` |
 | Fuse + attribute filters | `src/lib/search.ts` |
-| Map tiles | `src/lib/mapTiles.ts` |
+| Map tiles | `src/lib/mapTiles.ts`, `src/lib/indiaBoundaryLayerConfigs.ts` |
 | URL filter state | `src/lib/urlState.ts` |
 | Shared Mapbox forward geocode | `shared/mapboxGeocode.ts` |
 | Geocode function | `netlify/functions/geocode.ts` |

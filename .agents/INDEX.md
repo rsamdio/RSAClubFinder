@@ -35,7 +35,7 @@ Data & Edge Architecture:
 * [`App.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/App.tsx): Top-level routing wrapper mounting `FinderApp` and `AnalyticsRouteListener`.
 * [`index.css`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/index.css): Comprehensive styling sheet with design tokens, responsive bottom sheet variables, desktop panel layout, and Leaflet cluster customizations.
 * [`FinderApp.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/FinderApp.tsx): Root application controller and state orchestrator. Manages filter state, search epoch, committed query, place lookup, map view bounds, bottom sheet snap points, routing synchronization via `history.replaceState`, and Near Me sessions.
-* [`MapView.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/MapView.tsx): Lazy-loaded Leaflet map with Survey of India boundary-corrected Esri World Street Map tiles (`@india-boundary-corrector/leaflet-layer`) and native marker clustering (`leaflet.markercluster`). Uses bulk layer operations (`addLayers`/`removeLayers`) to eliminate redraw flicker, smooth progressive tile streaming (`updateWhenIdle: false`), and race-condition guarded flight timers.
+* [`MapView.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/MapView.tsx): Lazy-loaded Leaflet map with Survey of India boundary-corrected Esri basemaps (`@india-boundary-corrector/leaflet-layer`) and native marker clustering (`leaflet.markercluster`). Default Street layer mounts immediately; Light/Dark basemaps register on idle. PMTiles are Range-fetched (never full-file preloaded). Uses bulk layer operations (`addLayers`/`removeLayers`) to eliminate redraw flicker, smooth progressive tile streaming (`updateWhenIdle: false`), and race-condition guarded flight timers.
 * [`SearchBar.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/SearchBar.tsx): Controlled search input that commits queries solely on `Enter` keypress or `Clear` action, synchronized with browser history and external filter clearing.
 * [`SearchableSelect.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/SearchableSelect.tsx): Accessible, searchable dropdown select component for high-cardinality filters (Country, State, City, District, Zone) with touch support and keyboard auto-scroll.
 * [`FilterPanel.tsx`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/components/FilterPanel.tsx): Multi-criteria filter drawer for cascading location filters, district, zone, and segmented control for club types (`all`, `community`, `university`).
@@ -52,7 +52,9 @@ Data & Edge Architecture:
 
 * [`src/lib/places.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/places.ts): Place resolution engine. Builds client-side city centroids (`buildCityIndex`), performs instant city matching (`matchCityPlace`), identifies place-like queries (`looksLikePlaceQuery`), handles adaptive radius search (`clubsNearPointAdaptive`), and executes geocoding calls (`resolvePlaceSearch`).
 * [`src/lib/search.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/search.ts): Fuse.js index builder (`createClubIndex`), strong substring matching (`hasStrongClubMatch`), attribute filtering, and distance sorting (`filterClubs`).
-* [`src/lib/mapTiles.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/mapTiles.ts): Esri World Street Map tile configuration and South Asia geographic bounding constants (`SOUTH_ASIA_CENTER`, `SOUTH_ASIA_ZOOM`, `MAP_BROWSE_MIN_ZOOM`).
+* [`src/lib/mapTiles.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/mapTiles.ts): Curated Esri basemap configs (Street, Light Gray, Dark) and South Asia geographic constants (`SOUTH_ASIA_CENTER`, `SOUTH_ASIA_ZOOM`, `MAP_BROWSE_MIN_ZOOM`).
+* [`src/lib/indiaBoundaryLayerConfigs.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/indiaBoundaryLayerConfigs.ts): Registers Esri-tuned India boundary `LayerConfig`s and shared PMTiles URL.
+* [`docs/india-boundary-qa.md`](file:///Users/zeospec/Dev/Code/RSAClubFinder/docs/india-boundary-qa.md): Boundary correction hotspot QA checklist and baseline findings.
 * [`src/lib/mapViewTypes.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/mapViewTypes.ts): Type definitions for `MapViewState` and marker display caps (`IDLE_MAP_MARKER_CAP`).
 * [`src/lib/haversine.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/haversine.ts): Great-circle distance calculator (`haversineKm`) in kilometers.
 * [`src/lib/clubId.ts`](file:///Users/zeospec/Dev/Code/RSAClubFinder/src/lib/clubId.ts): Club ID normalizer and lookup helper (`findClubById`, `normalizeClubIdParam`).
@@ -104,7 +106,9 @@ Data & Edge Architecture:
 * [`public/how-to-find/index.html`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/how-to-find/index.html): Static crawlable How-To Guide for finding Rotaract clubs.
 * [`public/llms.txt`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/llms.txt): LLM discovery manifest with canonical routes and metadata.
 * [`public/llms-full.txt`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/llms-full.txt): Full knowledge context for LLMs and answer engines with directory topology, district lists, and search guidelines.
+* [`public/robots.txt`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/robots.txt): Crawl policy allowing major search and AI retrieval bots; Sitemap pointer.
 * [`public/sitemap.xml`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/sitemap.xml): Search engine sitemap generated at build time.
+* [`docs/seo-geo-aeo-checklist.md`](file:///Users/zeospec/Dev/Code/RSAClubFinder/docs/seo-geo-aeo-checklist.md): SEO / GEO / AEO / AIO scorecard, do/do-not rules, and post-deploy smoke checks.
 * [`public/fonts/`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/fonts): Self-hosted Open Sans & Sentinel fonts (woff2 + TTF).
 * [`public/brand/`](file:///Users/zeospec/Dev/Code/RSAClubFinder/public/brand): RSAMDIO official brand logos and WebP assets.
 
@@ -127,7 +131,7 @@ Data & Edge Architecture:
 2. **Camera Ownership**: List updates (filtering, browsing nearby) must NEVER alter map center or zoom. Map auto-fit is restricted to intentional club-name searches.
 3. **One-Shot Near Me**: GPS location triggers a single fly-to and sets a persistent session marker (standing me-dot). Recenter pans to this point without resetting search state.
 4. **Zero-Database Runtime**: The application runs entirely on static JSON and serverless geocode proxying. No coordinates are written back to `clubs.json`.
-5. **Survey of India Boundary Compliance**: Esri World Street Map tiles layered with `@india-boundary-corrector/leaflet-layer` to respect Indian sovereign border representation.
+5. **Survey of India Boundary Compliance**: Esri basemaps wrapped with `@india-boundary-corrector/leaflet-layer` using Esri-tuned layer configs (`indiaBoundaryLayerConfigs.ts`) so corrected borders match each style.
 6. **No Phone Numbers**: Public dataset rejects any phone/mobile column during CSV validation.
 7. **No Em Dashes**: Unicode em dashes (`\u2014`) are strictly forbidden across code, comments, CSS headers, data descriptions, and docs. Use periods, commas, colons, hyphens, or parentheses.
 8. **Continuous Index Synchronization**: Any file creation, rename, relocation, or deletion must immediately update `.agents/INDEX.md` and root `INDEX.md`.

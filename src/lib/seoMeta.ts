@@ -5,4 +5,6 @@ export {
   TWITTER_HANDLE,
   TWITTER_URL,
   clubPageTitle,
+  clubPath,
+  clubPageUrl,
 } from '../../shared/seoMeta.mjs'

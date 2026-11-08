@@ -1,6 +1,7 @@
 /**
- * After Vite build: sitemap + prerendered /club/{club_id} HTML with OG tags,
+ * After Vite build: sitemap + prerendered /club/{club_id}/ HTML with OG tags,
  * plus a 404 page. Unknown club ids fall through to the Netlify 404 redirect.
+ * Canonical and sitemap locs use trailing slash (Netlify Pretty URLs).
  *
  * Run: node scripts/prerender-clubs.mjs
  */
@@ -286,7 +287,7 @@ for (const club of clubs) {
   const lastmod = sitemapLastmod(club)
   const lastmodTag = lastmod ? `<lastmod>${lastmod}</lastmod>` : ''
   sitemapUrls.push(
-    `  <url><loc>${SITE_ORIGIN}/club/${encodeURIComponent(id)}</loc>${lastmodTag}<changefreq>monthly</changefreq><priority>0.6</priority></url>`,
+    `  <url><loc>${clubPageUrl(id)}</loc>${lastmodTag}<changefreq>monthly</changefreq><priority>0.6</priority></url>`,
   )
 }
 
